@@ -502,6 +502,30 @@ async def get_frame_annotations(
     frame_index: int
 ) -> JSONResponse:
     """Get annotations for a specific frame."""
+
+    # 1. Check Memory (Fastest, most recent)
+    frame_annotations = _frame_annotations.get(study_id, {})
+    # Check int key then str key
+    annotations = frame_annotations.get(frame_index) or frame_annotations.get(str(frame_index))
+    
+    if annotations:
+        return JSONResponse(annotations)
+
+    # 2. Check Temp File (Active session persistence)
+    temp_annotations_file = TEMP_DIR / f"{study_id}_annotations.json"
+    if temp_annotations_file.exists():
+        try:
+            with temp_annotations_file.open("r", encoding="utf-8") as f:
+                loaded_annotations = json.load(f)
+                if study_id in loaded_annotations:
+                    frame_ann = loaded_annotations[study_id]
+                    annotations = frame_ann.get(str(frame_index)) or frame_ann.get(frame_index)
+                    if annotations:
+                        return JSONResponse(annotations)
+        except Exception:
+            pass
+
+    """Get annotations for a specific frame."""
     # Try to load from saved study file first
     study_data = load_study(study_id)
     if study_data and "frame_annotations" in study_data:
@@ -510,24 +534,7 @@ async def get_frame_annotations(
         if annotations:
             return JSONResponse(annotations)
     
-    # Try temp file
-    temp_annotations_file = TEMP_DIR / f"{study_id}_annotations.json"
-    if temp_annotations_file.exists():
-        try:
-            with temp_annotations_file.open("r", encoding="utf-8") as f:
-                loaded_annotations = json.load(f)
-                if study_id in loaded_annotations:
-                    frame_annotations = loaded_annotations[study_id]
-                    annotations = frame_annotations.get(str(frame_index)) or frame_annotations.get(frame_index)
-                    if annotations:
-                        return JSONResponse(annotations)
-        except Exception as e:
-            logger.warning(f"Error loading temp annotations file: {e}")
-    
-    # Get from memory
-    frame_annotations = _frame_annotations.get(study_id, {})
-    annotations = frame_annotations.get(frame_index) or frame_annotations.get(str(frame_index))
-    
+ 
     if not annotations:
         annotations = {
             "bounding_boxes": {},  # {track_id: {bbox, name, action, annotations}}
@@ -1175,6 +1182,12 @@ async def propagate_labels(
         "count": len(updated_frames)
     })
 
+@app.post("/reset_session")
+async def reset_session():
+    """Clears all in-memory annotations to ensure a fresh state."""
+    global _frame_annotations
+    _frame_annotations.clear()
+    return JSONResponse({"status": "session_cleared"})
 
 if __name__ == "__main__":
     import uvicorn

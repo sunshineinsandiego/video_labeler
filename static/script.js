@@ -262,6 +262,9 @@ async function uploadVideo() {
   }
   
   setMode("uploading", "Uploading video...");
+  // --- NEW: Reset session ---
+  try { await fetch("/reset_session", { method: "POST" }); } catch (e) {}
+  // --------------------------
   
   const form = new FormData();
   form.append("video_file", videoFile);
@@ -1627,7 +1630,8 @@ function updateLists() {
     li.appendChild(labelText);
     
     const infoText = document.createElement("span");
-    infoText.textContent = `${Math.round(ang.value)}°`;
+    const displayedAngle = ang.isReflex ? (360 - ang.value) : ang.value;
+    infoText.textContent = `${Math.round(displayedAngle)}°`;
     infoText.style.flexShrink = "0";
     infoText.style.color = "#666";
     infoText.style.fontSize = "0.9rem";
@@ -1939,10 +1943,12 @@ function render() {
     const angColor = ang.color || "#4fc3f7";
     const triangleSize = 8 / state.zoom;
     
+    // Draw triangles
     drawTriangle(ctx, ang.point1.x, ang.point1.y, triangleSize, angColor, state.zoom);
     drawTriangle(ctx, ang.point2.x, ang.point2.y, triangleSize, angColor, state.zoom);
     drawTriangle(ctx, ang.point3.x, ang.point3.y, triangleSize, angColor, state.zoom);
     
+    // Draw lines
     ctx.strokeStyle = angColor;
     ctx.lineWidth = 2 / state.zoom;
     ctx.setLineDash([5 / state.zoom, 5 / state.zoom]);
@@ -1959,6 +1965,11 @@ function render() {
     
     ctx.setLineDash([]);
     
+    // --- Logic for Reflex Angles ---
+    
+    // Calculate the displayed angle value
+    const displayedAngle = ang.isReflex ? (360 - ang.value) : ang.value;
+    
     const vertex = ang.point2;
     const arcRadius = 20 / state.zoom;
     
@@ -1971,8 +1982,15 @@ function render() {
     let diff = angle2 - angle1;
     if (diff < 0) diff += 2 * Math.PI;
     
-    if (diff > Math.PI) {
-      [angle1, angle2] = [angle2, angle1];
+    // Swap angles based on isReflex state
+    if (ang.isReflex) {
+      if (diff <= Math.PI) {
+        [angle1, angle2] = [angle2, angle1];
+      }
+    } else {
+      if (diff > Math.PI) {
+        [angle1, angle2] = [angle2, angle1];
+      }
     }
     
     ctx.strokeStyle = angColor;
@@ -1981,9 +1999,47 @@ function render() {
     ctx.arc(vertex.x, vertex.y, arcRadius, angle1, angle2, false);
     ctx.stroke();
     
-    ctx.fillStyle = angColor;
+    // --- Text Rendering with Click Box ---
+    
+    const textOffsetX = 35 / state.zoom;
+    const textOffsetY = -35 / state.zoom;
+    const textX = ang.point2.x + textOffsetX;
+    const textY = ang.point2.y + textOffsetY;
+    const angleText = `${Math.round(displayedAngle)}°`;
+    
+    // Measure for text box
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0); 
+    ctx.font = `12px system-ui`;
+    const metrics = ctx.measureText(angleText);
+    const textWidthCanvas = metrics.width;
+    const textHeightCanvas = 12; 
+    ctx.restore();
+    
+    const canvasTextX = textX * state.zoom + state.panX;
+    const canvasTextY = textY * state.zoom + state.panY;
+    
+    // Define Clickable Box (with padding)
+    const padding = 10; 
+    ang.textBox = {
+      x: canvasTextX - padding,
+      y: canvasTextY - textHeightCanvas - padding,
+      width: textWidthCanvas + (padding * 2),
+      height: textHeightCanvas + (padding * 2) 
+    };
+    
+    // Draw text (Sky Blue)
+    ctx.fillStyle = "#87CEEB"; 
     ctx.font = `${12 / state.zoom}px system-ui`;
-    ctx.fillText(`${Math.round(ang.value)}°`, ang.point2.x + 8 / state.zoom, ang.point2.y - 8 / state.zoom);
+    ctx.fillText(angleText, textX, textY);
+    
+    // Draw underline
+    ctx.strokeStyle = "#87CEEB";
+    ctx.lineWidth = 1 / state.zoom;
+    ctx.beginPath();
+    ctx.moveTo(textX, textY + 2 / state.zoom);
+    ctx.lineTo(textX + textWidthCanvas / state.zoom, textY + 2 / state.zoom);
+    ctx.stroke();
   }
 
   ctx.restore();
@@ -1996,6 +2052,20 @@ function onCanvasMouseDown(evt) {
   const world = canvasToWorld(canvasX, canvasY);
 
   if (state.mode === "idle") {
+
+    for (const ang of state.measurements.angles) {
+      if (ang.textBox && isPointInRect(canvasX, canvasY, ang.textBox)) {
+        console.log("Angle text clicked:", ang.id, "toggling from", ang.isReflex, "to", !ang.isReflex);
+        ang.isReflex = !ang.isReflex;
+        updateLists();
+        render();
+        // Auto-save immediately so the change persists
+        saveCurrentFrameAnnotations(); 
+        evt.preventDefault();
+        evt.stopPropagation();
+        return; 
+      }
+    }
     // Check for draggable elements first
     const kp = findNearestKeypoint(world.x, world.y, 15);
     if (kp) {
@@ -2164,13 +2234,29 @@ function onCanvasMouseMove(evt) {
 
   // Update cursor
   if (state.mode === "idle") {
+
+    // Check if hovering over angle text
+    const rect = canvas.getBoundingClientRect();
+    const cvsX = evt.clientX - rect.left;
+    const cvsY = evt.clientY - rect.top;
+    let hoveringAngleText = false;
+    for (const ang of state.measurements.angles) {
+      if (ang.textBox && isPointInRect(cvsX, cvsY, ang.textBox)) {
+        hoveringAngleText = true;
+        break;
+      }
+    }
+
     const kp = findNearestKeypoint(world.x, world.y, 15);
     const lineEndpoint = findNearestLineEndpoint(world.x, world.y, 15);
     const distanceEndpoint = findNearestDistanceEndpoint(world.x, world.y, 15);
     const anglePoint = findNearestAnglePoint(world.x, world.y, 15);
     const roiPoint = findNearestRoiPoint(world.x, world.y, 15);
     const clickedTrack = findBoundingBoxAt(world.x, world.y);
-    if (kp || lineEndpoint || distanceEndpoint || anglePoint || roiPoint || clickedTrack) {
+
+
+
+    if (kp || lineEndpoint || distanceEndpoint || anglePoint || roiPoint || clickedTrack || hoveringAngleText) {
       canvas.style.cursor = "pointer";
     } else {
       canvas.style.cursor = "move";
@@ -2387,6 +2473,7 @@ async function onCanvasClick(evt) {
         point2: { x: p2.x, y: p2.y },
         point3: { x: p3.x, y: p3.y },
         value: ang,
+        isReflex: false, // ADD THIS LINE
         color,
       };
       
@@ -2701,6 +2788,15 @@ async function loadStudyById(studyId) {
   }
   
   setMode("loading", "Loading study...");
+
+  // --- NEW: Reset server session memory first ---
+  try {
+    await fetch("/reset_session", { method: "POST" });
+  } catch (err) {
+    console.warn("Failed to reset session memory:", err);
+  }
+  // ----------------------------------------------
+
   const res = await fetch(`/study/${encodeURIComponent(studyId)}`);
   if (!res.ok) {
     alert(`Load failed: ${await res.text()}`);
@@ -2919,6 +3015,11 @@ nextFrameBtn?.addEventListener("click", () => {
     loadFrame(state.currentFrameIndex + 1);
   }
 });
+
+function isPointInRect(x, y, rect) {
+  return x >= rect.x && x <= rect.x + rect.width &&
+         y >= rect.y && y <= rect.y + rect.height;
+}
 
 // Initialize
 fitCanvas();
