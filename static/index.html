@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Video Labeler</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header>
+        <h1>Video Labeler</h1>
+        <p>Upload a video file and keypoints_tracks.jsonl, then label tracks with names and actions.</p>
+      </header>
+      <main>
+        <section id="controls-panel">
+          <div class="control-group">
+            <div>
+              <label for="video-input">Select Video:</label>
+              <input id="video-input" type="file" accept="video/*" />
+              <div id="video-file-info" style="margin-top: 0.25rem; font-size: 0.9rem; color: #666;"></div>
+            </div>
+            <div style="margin-top: 0.5rem;">
+              <label for="keypoints-input">Select Keypoints Tracks (optional):</label>
+              <input id="keypoints-input" type="file" accept=".jsonl" />
+              <div id="keypoints-file-info" style="margin-top: 0.25rem; font-size: 0.9rem; color: #666;"></div>
+            </div>
+            <div style="margin-top: 1rem;">
+              <button id="upload-btn" style="position: relative; padding: 0.75rem 1.5rem; font-size: 1rem; font-weight: bold; background-color: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer; width: 100%; transition: background-color 0.2s; overflow: hidden;">
+                <span id="upload-progress-bar" style="position: absolute; left: 0; top: 0; height: 100%; background-color: rgba(255, 255, 255, 0.3); width: 0%; transition: width 0.1s linear; z-index: 0;"></span>
+                <span id="upload-btn-text" style="position: relative; z-index: 1;">Upload</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="control-group inline">
+            <div>
+              <label for="study-id">Study ID</label>
+              <input id="study-id" type="text" placeholder="Enter study id" required />
+            </div>
+            <div class="buttons">
+              <button id="save-study-btn">Save study</button>
+              <button id="load-study-btn">Load study</button>
+            </div>
+          </div>
+
+          <!-- Study Selection Modal -->
+          <div id="study-modal" class="modal" style="display: none;">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h2>Select Study to Load</h2>
+                <button id="close-modal-btn" class="close-btn">&times;</button>
+              </div>
+              <div class="modal-body">
+                <div id="study-list-container">
+                  <p>Loading studies...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <div class="buttons">
+              <button id="create-keypoint-btn">Create keypoint</button>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <div class="buttons">
+              <button id="draw-line-btn">Create line</button>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <div class="buttons">
+              <button id="distance-btn">Create distance</button>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <div class="buttons">
+              <button id="angle-btn">Create angle</button>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <div class="buttons">
+              <button id="roi-btn">Create ROI</button>
+            </div>
+            <div class="hint" style="font-size: 0.85rem; font-style: italic; color: #666; margin-top: 0.25rem;">Click "Enter" to complete the ROI</div>
+          </div>
+
+          <div class="control-group">
+            <h3>Selected Bounding Box</h3>
+            <div id="bbox-info" style="padding: 0.5rem; background: #f5f5f5; border-radius: 4px; margin-top: 0.5rem;">
+              <p style="margin: 0; color: #666;">No bounding box selected</p>
+            </div>
+            <div style="margin-top: 0.5rem;">
+              <label for="player-name-input">Player Name:</label>
+              <input id="player-name-input" type="text" placeholder="Enter player name" />
+            </div>
+            <div style="margin-top: 0.5rem;">
+              <label for="action-input">Action:</label>
+              <input id="action-input" type="text" placeholder="Enter action" />
+            </div>
+            <div style="margin-top: 0.5rem;">
+              <button id="apply-labels-btn">Apply Labels</button>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <h3>Keypoints</h3>
+            <ul id="keypoint-list"></ul>
+          </div>
+
+          <div class="control-group">
+            <h3>Lines</h3>
+            <ul id="line-list"></ul>
+          </div>
+
+          <div class="control-group">
+            <h3>ROIs</h3>
+            <ul id="roi-list"></ul>
+          </div>
+
+          <div class="control-group">
+            <h3>Distances</h3>
+            <ul id="distance-list"></ul>
+          </div>
+
+          <div class="control-group">
+            <h3>Angles</h3>
+            <ul id="angle-list"></ul>
+          </div>
+
+          <div id="metadata" class="control-group">
+            <h3>Metadata</h3>
+            <pre id="metadata-output">No file loaded.</pre>
+          </div>
+        </section>
+        <section id="canvas-panel">
+          <div class="control-group canvas-controls">
+            <div class="buttons">
+              <button id="zoom-in-btn">🔍 +</button>
+              <button id="zoom-out-btn">🔍 -</button>
+              <button id="pan-up-btn">↑</button>
+              <button id="pan-left-btn">←</button>
+              <button id="pan-right-btn">→</button>
+              <button id="pan-down-btn">↓</button>
+              <button id="reset-view-btn">Reset View</button>
+              <div id="frame-navigation-inline" style="display: none; margin-left: 0.5rem; padding-left: 0.5rem; border-left: 1px solid #ddd; align-items: center;">
+                <button id="prev-frame-btn">←</button>
+                <span id="frame-info" style="margin: 0 0.25rem; font-size: 0.7rem; color: #666; font-weight: bold;">
+                  <span>Frame </span>
+                  <span id="frame-number-display" style="cursor: pointer; text-decoration: underline; color: #2196f3;" title="Click to edit frame number"></span>
+                  <span> of </span>
+                  <span id="frame-total-display"></span>
+                </span>
+                <button id="next-frame-btn">→</button>
+              </div>
+            </div>
+          </div>
+          <canvas id="image-canvas"></canvas>
+        </section>
+      </main>
+    </div>
+    <script src="/static/script.js"></script>
+  </body>
+</html>
