@@ -159,6 +159,7 @@ const state = {
   selectedTrackId: null,
   studyId: null,
   tempStudyId: null,
+  isNavigating: false, // Lock to prevent race conditions during frame navigation
 };
 
 function setMode(mode, message) {
@@ -262,9 +263,26 @@ async function uploadVideo() {
   }
   
   setMode("uploading", "Uploading video...");
-  // --- NEW: Reset session ---
-  try { await fetch("/reset_session", { method: "POST" }); } catch (e) {}
-  // --------------------------
+  
+  // Reset session and clear temp files to ensure fresh state
+  try { 
+    await fetch("/reset_session?clear_temp=true", { method: "POST" }); 
+    console.log("[uploadVideo] Session reset and temp files cleared");
+  } catch (e) {
+    console.warn("[uploadVideo] Failed to reset session:", e);
+  }
+  
+  // Reset client-side state
+  state.studyId = null;
+  state.tempStudyId = null;
+  state.videoId = null;
+  state.keypointsTracks = {};
+  state.hasKeypointsFile = false;
+  state.frames = [];
+  state.currentFrameIndex = 0;
+  state.boundingBoxes = {};
+  state.selectedTrackId = null;
+  resetAnnotations();
   
   const form = new FormData();
   form.append("video_file", videoFile);
@@ -475,19 +493,28 @@ async function loadFrame(frameIndex) {
     return;
   }
   
-  // Save current frame annotations before switching
-  if (state.currentFrameIndex !== frameIndex && (state.studyId || state.tempStudyId)) {
-    await saveCurrentFrameAnnotations();
+  // Prevent concurrent frame loading to avoid race conditions
+  if (state.isNavigating) {
+    console.log(`[loadFrame] Skipping navigation to frame ${frameIndex} - already navigating`);
+    return;
   }
   
-  // --- FIX: CLEAR ANNOTATIONS TO PREVENT LEAKAGE ---
-  // We must clear the annotation state before updating the frame index.
-  // Otherwise, if the network is slow or the user navigates rapidly, 
-  // the app might save the OLD annotations to the NEW frame index.
-  resetAnnotations();
-  // -------------------------------------------------
+  state.isNavigating = true;
+  
+  try {
+    // Save current frame annotations before switching
+    if (state.currentFrameIndex !== frameIndex && (state.studyId || state.tempStudyId)) {
+      await saveCurrentFrameAnnotations();
+    }
+    
+    // --- FIX: CLEAR ANNOTATIONS TO PREVENT LEAKAGE ---
+    // We must clear the annotation state before updating the frame index.
+    // Otherwise, if the network is slow or the user navigates rapidly, 
+    // the app might save the OLD annotations to the NEW frame index.
+    resetAnnotations();
+    // -------------------------------------------------
 
-  state.currentFrameIndex = frameIndex;
+    state.currentFrameIndex = frameIndex;
   const frame = state.frames[frameIndex];
   
   // Load frame image
@@ -513,6 +540,9 @@ async function loadFrame(frameIndex) {
     console.log(`[loadFrame] Triggering render for frame ${frameIndex}`);
     render();
   }, 50);
+  } finally {
+    state.isNavigating = false;
+  }
 }
 
 async function loadFrameKeypoints(frameIndex) {
@@ -2674,15 +2704,25 @@ async function saveStudy() {
     return;
   }
   
-  // CRITICAL: If we have a temp study ID with annotations, migrate them to the new study ID
+  // CRITICAL: Save current frame annotations FIRST (under the current study ID)
+  // This ensures any annotations created on the current frame are persisted before migration
+  const oldTempStudyId = state.tempStudyId;
+  const oldStudyId = state.studyId;
+  const currentStudyIdForSave = oldStudyId || oldTempStudyId;
+  
+  console.log(`[saveStudy] Saving current frame ${state.currentFrameIndex} annotations under ${currentStudyIdForSave}`);
+  await saveCurrentFrameAnnotations();
+  
+  // Small delay to ensure save completes
+  await new Promise(resolve => setTimeout(resolve, 100));
+  
+  // If we have a temp study ID with annotations, migrate them to the new study ID
   // This ensures annotations created under the temp ID are preserved when saving
-  // Do this BEFORE setting state.studyId so saveCurrentFrameAnnotations uses the right ID
-  const tempStudyId = state.tempStudyId;
-  if (tempStudyId && tempStudyId !== studyId) {
-    console.log(`[saveStudy] Migrating annotations from temp study ${tempStudyId} to ${studyId}`);
+  if (oldTempStudyId && oldTempStudyId !== studyId) {
+    console.log(`[saveStudy] Migrating annotations from temp study ${oldTempStudyId} to ${studyId}`);
     try {
       // Migrate annotations from temp study to new study ID
-      const tempRes = await fetch(`/study/${encodeURIComponent(tempStudyId)}/migrate/${encodeURIComponent(studyId)}`, {
+      const tempRes = await fetch(`/study/${encodeURIComponent(oldTempStudyId)}/migrate/${encodeURIComponent(studyId)}`, {
         method: "POST",
       });
       if (!tempRes.ok) {
@@ -2690,24 +2730,32 @@ async function saveStudy() {
         console.warn(`[saveStudy] Migration failed, but continuing: ${errorText}`);
       } else {
         const result = await tempRes.json();
-        console.log(`[saveStudy] Successfully migrated ${result.frames_migrated || 0} frames from ${tempStudyId} to ${studyId}`);
+        console.log(`[saveStudy] Successfully migrated ${result.frames_migrated || 0} frames from ${oldTempStudyId} to ${studyId}`);
       }
     } catch (error) {
       console.warn(`[saveStudy] Migration error (continuing anyway): ${error.message}`);
     }
   }
   
-  // Now update study IDs - this ensures saveCurrentFrameAnnotations saves to the right place
+  // Also migrate from old study ID if different from new
+  if (oldStudyId && oldStudyId !== studyId && oldStudyId !== oldTempStudyId) {
+    console.log(`[saveStudy] Migrating annotations from old study ${oldStudyId} to ${studyId}`);
+    try {
+      const oldRes = await fetch(`/study/${encodeURIComponent(oldStudyId)}/migrate/${encodeURIComponent(studyId)}`, {
+        method: "POST",
+      });
+      if (oldRes.ok) {
+        const result = await oldRes.json();
+        console.log(`[saveStudy] Successfully migrated ${result.frames_migrated || 0} frames from ${oldStudyId} to ${studyId}`);
+      }
+    } catch (error) {
+      console.warn(`[saveStudy] Migration from old study error: ${error.message}`);
+    }
+  }
+  
+  // Now update study IDs - this ensures future saves go to the right place
   state.studyId = studyId;
   state.tempStudyId = studyId; // Update temp study ID to match so annotations persist after save
-  
-  // CRITICAL: Save current frame annotations BEFORE collecting all annotations
-  // This ensures any annotations created on the current frame are persisted
-  console.log(`[saveStudy] Saving current frame ${state.currentFrameIndex} annotations before collecting all annotations`);
-  await saveCurrentFrameAnnotations();
-  
-  // Small delay to ensure save completes
-  await new Promise(resolve => setTimeout(resolve, 100));
   
   // Create payload (no image saving)
   const payload = {
@@ -2763,6 +2811,9 @@ async function showStudySelectionModal() {
   studies.forEach((study) => {
     const studyItem = document.createElement("div");
     studyItem.className = "study-item";
+    studyItem.setAttribute("role", "button");
+    studyItem.setAttribute("tabindex", "0");
+    studyItem.setAttribute("data-study-id", study);
     
     const studyId = document.createElement("div");
     studyId.className = "study-id";
@@ -2770,9 +2821,17 @@ async function showStudySelectionModal() {
     
     studyItem.appendChild(studyId);
     
-    studyItem.addEventListener("click", () => {
+    const clickHandler = () => {
       loadStudyById(study);
       studyModal.style.display = "none";
+    };
+    
+    studyItem.addEventListener("click", clickHandler);
+    studyItem.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        clickHandler();
+      }
     });
     
     studyListContainer.appendChild(studyItem);
@@ -2789,13 +2848,14 @@ async function loadStudyById(studyId) {
   
   setMode("loading", "Loading study...");
 
-  // --- NEW: Reset server session memory first ---
+  // Reset server session memory and clear temp files to ensure fresh state
+  // This prevents old temp videos from accumulating
   try {
-    await fetch("/reset_session", { method: "POST" });
+    await fetch("/reset_session?clear_temp=true", { method: "POST" });
+    console.log("[loadStudyById] Session reset and temp files cleared");
   } catch (err) {
     console.warn("Failed to reset session memory:", err);
   }
-  // ----------------------------------------------
 
   const res = await fetch(`/study/${encodeURIComponent(studyId)}`);
   if (!res.ok) {
@@ -2806,16 +2866,58 @@ async function loadStudyById(studyId) {
   
   const data = await res.json();
   
+  console.log(`[loadStudyById] Loaded study data:`, {
+    study_id: data.study_id,
+    video_id: data.video_id,
+    total_frames: data.total_frames,
+    has_keypoints: data.metadata?.has_keypoints,
+    keypoints_tracks_frames: Object.keys(data.keypoints_tracks || {}).length
+  });
+  
   studyIdInput.value = studyId;
   state.studyId = studyId;
+  state.tempStudyId = studyId; // Use same ID for temp to ensure annotations are found
   
   // Load video data
   state.videoId = data.video_id;
-  state.frames = data.frames || [];
-  state.keypointsTracks = data.keypoints_tracks || {};
-  state.metadata = data.metadata || {};
+  state.storedFilename = `video_${data.video_id}.mp4`; // Video is now in temp
   state.originalFilename = data.original_filename;
-  state.kind = data.kind;
+  state.frames = data.frames || [];
+  state.hasKeypointsFile = data.metadata?.has_keypoints || false;
+  state.metadata = data.metadata || {};
+  state.kind = data.kind || "video";
+  state.imageUrl = `/video/${data.video_id}/frame/0`;
+  
+  // Normalize keypointsTracks keys (handle both string and number keys)
+  const rawTracks = data.keypoints_tracks || {};
+  state.keypointsTracks = {};
+  if (rawTracks && typeof rawTracks === 'object' && Object.keys(rawTracks).length > 0) {
+    for (const key in rawTracks) {
+      if (rawTracks.hasOwnProperty(key)) {
+        const numKey = parseInt(key, 10);
+        const value = rawTracks[key];
+        if (!isNaN(numKey) && Array.isArray(value)) {
+          state.keypointsTracks[numKey] = value;
+          state.keypointsTracks[String(numKey)] = value;
+        }
+      }
+    }
+    console.log(`[loadStudyById] Loaded ${Object.keys(state.keypointsTracks).length / 2} frames with keypoint tracks`);
+  }
+  
+  // Reset annotation state for fresh load
+  state.currentFrameIndex = 0;
+  state.boundingBoxes = {};
+  state.selectedTrackId = null;
+  state.keypoints = [];
+  state.lines = [];
+  state.rois = [];
+  state.measurements = { distances: [], angles: [] };
+  state.nextKeypointIndex = 1;
+  state.nextLineIndex = 1;
+  state.nextRoiIndex = 1;
+  state.nextDistanceIndex = 1;
+  state.nextAngleIndex = 1;
   
   metadataOutput.textContent = JSON.stringify(state.metadata, null, 2);
   
@@ -2824,7 +2926,7 @@ async function loadStudyById(studyId) {
   // Setup frame number editor
   setupFrameNumberEditor();
   
-  // Load first frame
+  // Load first frame (this will also load annotations from temp file)
   await loadFrame(0);
   setMode("idle", `Loaded study ${studyId}`);
 }

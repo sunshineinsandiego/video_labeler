@@ -757,9 +757,61 @@ async def save_annotations(
     keypoints_path = TEMP_DIR / f"keypoints_{video_id}.jsonl"
     annotations_path = study_dir / f"{study_id}_annotations.jsonl"
     
+    # Helper function to serialize annotation objects with full data for reconstruction
+    def serialize_keypoint(kp):
+        return {
+            "id": kp.get("id", ""),
+            "name": kp.get("label", ""),
+            "x": kp.get("x", 0),
+            "y": kp.get("y", 0),
+            "color": kp.get("color", "#ff5252")
+        }
+    
+    def serialize_line(line):
+        return {
+            "id": line.get("id", ""),
+            "name": line.get("label", ""),
+            "start": {"x": line.get("start", {}).get("x", 0), "y": line.get("start", {}).get("y", 0)},
+            "end": {"x": line.get("end", {}).get("x", 0), "y": line.get("end", {}).get("y", 0)},
+            "color": line.get("color", "#4fc3f7")
+        }
+    
+    def serialize_roi(roi):
+        return {
+            "id": roi.get("id", ""),
+            "name": roi.get("label", ""),
+            "points": [{"x": p.get("x", 0), "y": p.get("y", 0)} for p in roi.get("points", [])],
+            "color": roi.get("color", "#4fc3f7")
+        }
+    
+    def serialize_distance(dist):
+        return {
+            "id": dist.get("id", ""),
+            "name": dist.get("label", ""),
+            "start": {"x": dist.get("start", {}).get("x", 0), "y": dist.get("start", {}).get("y", 0)},
+            "end": {"x": dist.get("end", {}).get("x", 0), "y": dist.get("end", {}).get("y", 0)},
+            "value": dist.get("value", 0),
+            "color": dist.get("color", "#4fc3f7")
+        }
+    
+    def serialize_angle(angle):
+        return {
+            "id": angle.get("id", ""),
+            "name": angle.get("label", ""),
+            "point1": {"x": angle.get("point1", {}).get("x", 0), "y": angle.get("point1", {}).get("y", 0)},
+            "point2": {"x": angle.get("point2", {}).get("x", 0), "y": angle.get("point2", {}).get("y", 0)},
+            "point3": {"x": angle.get("point3", {}).get("x", 0), "y": angle.get("point3", {}).get("y", 0)},
+            "value": angle.get("value", 0),
+            "isReflex": angle.get("isReflex", False),
+            "color": angle.get("color", "#4fc3f7")
+        }
+    
     if keypoints_path.exists():
-        # Case 1: Has keypoints_tracks file - save annotated tracks with name/action + manual annotations
+        # Case 1: Has keypoints_tracks file - save annotated tracks with name/action
+        # Manual annotations are saved as separate frame-level records (no track_id)
         lines_written = 0
+        frames_with_manual_annotations_written = set()  # Track which frames already have manual annotations written
+        
         with keypoints_path.open("r", encoding="utf-8") as input_file, \
              annotations_path.open("w", encoding="utf-8") as output_file:
             
@@ -794,91 +846,86 @@ async def save_annotations(
                         else:
                             action_val = None
                     
-                    # Get manual annotations for this frame
-                    frame_ann = all_frame_annotations.get(frame_idx, {})
-                    
-                    # Keep the original track_record intact to preserve all original fields and their order
-                    # Then append name/action/manual annotations at the end
-                    
-                    # Add name and action if present (at the end)
+                    # Add name and action if present
                     if name_val:
                         track_record["name"] = name_val
                     if action_val:
                         track_record["action"] = action_val
                     
-                    # Add manual annotations at the end (all capitalized)
-                    # Format manual keypoints
-                    keypoints_list = frame_ann.get("keypoints", [])
-                    if keypoints_list:
-                        track_record["Keypoints"] = [
-                            {
-                                "name": kp.get("label", ""),
-                                "coords": f"{kp.get('x', 0)},{kp.get('y', 0)}"
-                            }
-                            for kp in keypoints_list
-                        ]
-                    
-                    # Format lines
-                    lines_list = frame_ann.get("lines", [])
-                    if lines_list:
-                        track_record["Lines"] = [
-                            {
-                                "name": line.get("label", ""),
-                                "coords": f"{line.get('start', {}).get('x', 0)},{line.get('start', {}).get('y', 0)};{line.get('end', {}).get('x', 0)},{line.get('end', {}).get('y', 0)}"
-                            }
-                            for line in lines_list
-                        ]
-                    else:
-                        track_record["Lines"] = []
-                    
-                    # Format ROIs
-                    rois_list = frame_ann.get("rois", [])
-                    if rois_list:
-                        track_record["ROIs"] = [
-                            {
-                                "name": roi.get("label", ""),
-                                "coords": ";".join([f"{p.get('x', 0)},{p.get('y', 0)}" for p in roi.get("points", [])])
-                            }
-                            for roi in rois_list
-                        ]
-                    else:
-                        track_record["ROIs"] = []
-                    
-                    # Format distances
-                    distances_list = frame_ann.get("measurements", {}).get("distances", [])
-                    if distances_list:
-                        track_record["Distances"] = [
-                            {
-                                "name": dist.get("label", ""),
-                                "coords": f"{dist.get('start', {}).get('x', 0)},{dist.get('start', {}).get('y', 0)};{dist.get('end', {}).get('x', 0)},{dist.get('end', {}).get('y', 0)}"
-                            }
-                            for dist in distances_list
-                        ]
-                    else:
-                        track_record["Distances"] = []
-                    
-                    # Format angles
-                    angles_list = frame_ann.get("measurements", {}).get("angles", [])
-                    if angles_list:
-                        track_record["Angles"] = [
-                            {
-                                "name": angle.get("label", ""),
-                                "coords": f"{angle.get('point1', {}).get('x', 0)},{angle.get('point1', {}).get('y', 0)};{angle.get('point2', {}).get('x', 0)},{angle.get('point2', {}).get('y', 0)};{angle.get('point3', {}).get('x', 0)},{angle.get('point3', {}).get('y', 0)}"
-                            }
-                            for angle in angles_list
-                        ]
-                    else:
-                        track_record["Angles"] = []
-                    
-                    # Write the line (original fields preserved, new fields appended)
+                    # Write the track record (without manual annotations - those go in separate frame records)
                     output_file.write(json.dumps(track_record, ensure_ascii=False) + "\n")
                     lines_written += 1
+                    
+                    # Write manual annotations for this frame as a separate record (only once per frame)
+                    if frame_idx not in frames_with_manual_annotations_written:
+                        frame_ann = all_frame_annotations.get(frame_idx) or all_frame_annotations.get(str(frame_idx), {})
+                        
+                        keypoints_list = frame_ann.get("keypoints", [])
+                        lines_list = frame_ann.get("lines", [])
+                        rois_list = frame_ann.get("rois", [])
+                        measurements = frame_ann.get("measurements", {})
+                        distances_list = measurements.get("distances", []) if isinstance(measurements, dict) else []
+                        angles_list = measurements.get("angles", []) if isinstance(measurements, dict) else []
+                        
+                        has_any_manual = keypoints_list or lines_list or rois_list or distances_list or angles_list
+                        
+                        if has_any_manual:
+                            # Frame-level record (no track_id) for manual annotations
+                            frame_record = {
+                                "frame": frame_idx,
+                                "Keypoints": [serialize_keypoint(kp) for kp in keypoints_list],
+                                "Lines": [serialize_line(ln) for ln in lines_list],
+                                "ROIs": [serialize_roi(roi) for roi in rois_list],
+                                "Distances": [serialize_distance(dist) for dist in distances_list],
+                                "Angles": [serialize_angle(ang) for ang in angles_list]
+                            }
+                            output_file.write(json.dumps(frame_record, ensure_ascii=False) + "\n")
+                            lines_written += 1
+                        
+                        frames_with_manual_annotations_written.add(frame_idx)
                     
                 except json.JSONDecodeError as e:
                     logger.warning(f"Error parsing line in {keypoints_path}: {e}")
                     continue
         
-        logger.info(f"Saved study {study_id} as JSONL: {lines_written} lines written")
+        # Also write manual annotations for frames that don't have any tracks
+        # (in case user added manual annotations on frames without annotated tracks)
+        with annotations_path.open("a", encoding="utf-8") as output_file:
+            for frame_idx in all_frame_annotations.keys():
+                # Normalize frame_idx to int
+                if isinstance(frame_idx, str) and frame_idx.isdigit():
+                    frame_idx_int = int(frame_idx)
+                else:
+                    frame_idx_int = frame_idx
+                
+                if frame_idx_int in frames_with_manual_annotations_written:
+                    continue
+                
+                frame_ann = all_frame_annotations.get(frame_idx) or all_frame_annotations.get(str(frame_idx), {})
+                
+                keypoints_list = frame_ann.get("keypoints", [])
+                lines_list = frame_ann.get("lines", [])
+                rois_list = frame_ann.get("rois", [])
+                measurements = frame_ann.get("measurements", {})
+                distances_list = measurements.get("distances", []) if isinstance(measurements, dict) else []
+                angles_list = measurements.get("angles", []) if isinstance(measurements, dict) else []
+                
+                has_any_manual = keypoints_list or lines_list or rois_list or distances_list or angles_list
+                
+                if has_any_manual:
+                    frame_record = {
+                        "frame": frame_idx_int,
+                        "Keypoints": [serialize_keypoint(kp) for kp in keypoints_list],
+                        "Lines": [serialize_line(ln) for ln in lines_list],
+                        "ROIs": [serialize_roi(roi) for roi in rois_list],
+                        "Distances": [serialize_distance(dist) for dist in distances_list],
+                        "Angles": [serialize_angle(ang) for ang in angles_list]
+                    }
+                    output_file.write(json.dumps(frame_record, ensure_ascii=False) + "\n")
+                    lines_written += 1
+                    frames_with_manual_annotations_written.add(frame_idx_int)
+        
+        logger.info(f"Saved study {study_id} as JSONL: {lines_written} lines written (includes {len(frames_with_manual_annotations_written)} frame annotation records)")
         
         # Also save metadata file with original video filename
         metadata_path = study_dir / f"{study_id}_metadata.json"
@@ -930,58 +977,15 @@ async def save_annotations(
                 if not (has_keypoints or has_lines or has_rois or has_distances or has_angles):
                     continue
                 
-                # Build frame record
-                frame_record = {"frame": frame_idx}
-                
-                # Format keypoints (already extracted above)
-                if keypoints_list:
-                    frame_record["Keypoints"] = [
-                        {
-                            "name": kp.get("label", ""),
-                            "coords": f"{kp.get('x', 0)},{kp.get('y', 0)}"
-                        }
-                        for kp in keypoints_list
-                    ]
-                
-                # Format lines (already extracted above)
-                if lines_list:
-                    frame_record["Lines"] = [
-                        {
-                            "name": line.get("label", ""),
-                            "coords": f"{line.get('start', {}).get('x', 0)},{line.get('start', {}).get('y', 0)};{line.get('end', {}).get('x', 0)},{line.get('end', {}).get('y', 0)}"
-                        }
-                        for line in lines_list
-                    ]
-                
-                # Format ROIs (already extracted above)
-                if rois_list:
-                    frame_record["ROIs"] = [
-                        {
-                            "name": roi.get("label", ""),
-                            "coords": ";".join([f"{p.get('x', 0)},{p.get('y', 0)}" for p in roi.get("points", [])])
-                        }
-                        for roi in rois_list
-                    ]
-                
-                # Format distances (already extracted above)
-                if distances_list:
-                    frame_record["Distances"] = [
-                        {
-                            "name": dist.get("label", ""),
-                            "coords": f"{dist.get('start', {}).get('x', 0)},{dist.get('start', {}).get('y', 0)};{dist.get('end', {}).get('x', 0)},{dist.get('end', {}).get('y', 0)}"
-                        }
-                        for dist in distances_list
-                    ]
-                
-                # Format angles (already extracted above)
-                if angles_list:
-                    frame_record["Angles"] = [
-                        {
-                            "name": angle.get("label", ""),
-                            "coords": f"{angle.get('point1', {}).get('x', 0)},{angle.get('point1', {}).get('y', 0)};{angle.get('point2', {}).get('x', 0)},{angle.get('point2', {}).get('y', 0)};{angle.get('point3', {}).get('x', 0)},{angle.get('point3', {}).get('y', 0)}"
-                        }
-                        for angle in angles_list
-                    ]
+                # Build frame record with full annotation data for reconstruction
+                frame_record = {
+                    "frame": frame_idx,
+                    "Keypoints": [serialize_keypoint(kp) for kp in keypoints_list],
+                    "Lines": [serialize_line(ln) for ln in lines_list],
+                    "ROIs": [serialize_roi(roi) for roi in rois_list],
+                    "Distances": [serialize_distance(dist) for dist in distances_list],
+                    "Angles": [serialize_angle(ang) for ang in angles_list]
+                }
                 
                 # Write the frame record
                 output_file.write(json.dumps(frame_record, ensure_ascii=False) + "\n")
@@ -1032,6 +1036,262 @@ def load_study(study_id: str) -> Optional[Dict[str, Any]]:
     return None
 
 
+def parse_coords(coords_str: str) -> List[Dict[str, float]]:
+    """Parse coordinate string like 'x1,y1;x2,y2;...' into list of {x, y} dicts."""
+    points = []
+    if not coords_str:
+        return points
+    for pair in coords_str.split(";"):
+        parts = pair.split(",")
+        if len(parts) >= 2:
+            try:
+                points.append({"x": float(parts[0]), "y": float(parts[1])})
+            except ValueError:
+                continue
+    return points
+
+
+def load_study_annotations_to_temp(study_id: str) -> bool:
+    """
+    Load annotations from saved JSONL file and write to temp JSON format.
+    Converts from saved format (Keypoints, coords string) to temp format (keypoints, x/y fields).
+    Returns True if successful, False otherwise.
+    """
+    study_dir = STUDY_DIR / study_id
+    annotations_path = study_dir / f"{study_id}_annotations.jsonl"
+    temp_annotations_file = TEMP_DIR / f"{study_id}_annotations.json"
+    
+    if not annotations_path.exists():
+        logger.warning(f"Annotations file not found: {annotations_path}")
+        return False
+    
+    logger.info(f"Loading annotations from {annotations_path} to temp")
+    
+    all_frame_annotations = {}
+    
+    try:
+        with annotations_path.open("r", encoding="utf-8") as f:
+            for line_num, line in enumerate(f, 1):
+                line = line.strip()
+                if not line:
+                    continue
+                
+                try:
+                    record = json.loads(line)
+                    frame_idx = record.get("frame", 0)
+                    
+                    # Skip track records (they have track_id), only process frame annotation records
+                    if "track_id" in record:
+                        # This is a track record with bounding box labels
+                        # We can extract name/action for bounding_boxes
+                        track_id = record.get("track_id")
+                        if frame_idx not in all_frame_annotations:
+                            all_frame_annotations[frame_idx] = {
+                                "keypoints": [],
+                                "lines": [],
+                                "rois": [],
+                                "measurements": {"distances": [], "angles": []},
+                                "bounding_boxes": {}
+                            }
+                        
+                        if track_id is not None:
+                            name = record.get("name")
+                            action = record.get("action")
+                            if name or action:
+                                all_frame_annotations[frame_idx]["bounding_boxes"][str(track_id)] = {
+                                    "name": name,
+                                    "action": action
+                                }
+                        continue
+                    
+                    # This is a frame annotation record (manual annotations)
+                    if frame_idx not in all_frame_annotations:
+                        all_frame_annotations[frame_idx] = {
+                            "keypoints": [],
+                            "lines": [],
+                            "rois": [],
+                            "measurements": {"distances": [], "angles": []},
+                            "bounding_boxes": {}
+                        }
+                    
+                    frame_ann = all_frame_annotations[frame_idx]
+                    
+                    # Parse Keypoints (handles both old coords format and new x/y format)
+                    keypoints_data = record.get("Keypoints", [])
+                    for i, kp in enumerate(keypoints_data):
+                        # Try new format first (individual x, y fields)
+                        if "x" in kp and "y" in kp:
+                            frame_ann["keypoints"].append({
+                                "id": kp.get("id", f"kp-{i+1}"),
+                                "label": kp.get("name", kp.get("label", f"#{i+1}")),
+                                "x": kp.get("x", 0),
+                                "y": kp.get("y", 0),
+                                "color": kp.get("color", "#ff5252")
+                            })
+                        # Fall back to old coords string format
+                        elif "coords" in kp:
+                            coords = parse_coords(kp.get("coords", ""))
+                            if coords:
+                                frame_ann["keypoints"].append({
+                                    "id": kp.get("id", f"kp-{i+1}"),
+                                    "label": kp.get("name", f"#{i+1}"),
+                                    "x": coords[0]["x"],
+                                    "y": coords[0]["y"],
+                                    "color": kp.get("color", "#ff5252")
+                                })
+                    
+                    # Parse Lines (handles both old coords format and new start/end format)
+                    lines_data = record.get("Lines", [])
+                    for i, ln in enumerate(lines_data):
+                        # Try new format first (start/end objects)
+                        if "start" in ln and "end" in ln:
+                            frame_ann["lines"].append({
+                                "id": ln.get("id", f"line-{i+1}"),
+                                "label": ln.get("name", ln.get("label", f"#{i+1}")),
+                                "start": ln.get("start"),
+                                "end": ln.get("end"),
+                                "color": ln.get("color", "#4fc3f7")
+                            })
+                        # Fall back to old coords string format
+                        elif "coords" in ln:
+                            coords = parse_coords(ln.get("coords", ""))
+                            if len(coords) >= 2:
+                                frame_ann["lines"].append({
+                                    "id": ln.get("id", f"line-{i+1}"),
+                                    "label": ln.get("name", f"#{i+1}"),
+                                    "start": coords[0],
+                                    "end": coords[1],
+                                    "color": ln.get("color", "#4fc3f7")
+                                })
+                    
+                    # Parse ROIs (handles both old coords format and new points format)
+                    rois_data = record.get("ROIs", [])
+                    for i, roi in enumerate(rois_data):
+                        # Try new format first (points array)
+                        if "points" in roi and isinstance(roi.get("points"), list):
+                            frame_ann["rois"].append({
+                                "id": roi.get("id", f"roi-{i+1}"),
+                                "label": roi.get("name", roi.get("label", f"#{i+1}")),
+                                "points": roi.get("points"),
+                                "color": roi.get("color", "#4fc3f7")
+                            })
+                        # Fall back to old coords string format
+                        elif "coords" in roi:
+                            coords = parse_coords(roi.get("coords", ""))
+                            if len(coords) >= 3:
+                                frame_ann["rois"].append({
+                                    "id": roi.get("id", f"roi-{i+1}"),
+                                    "label": roi.get("name", f"#{i+1}"),
+                                    "points": coords,
+                                    "color": roi.get("color", "#4fc3f7")
+                                })
+                    
+                    # Parse Distances (handles both old coords format and new start/end format)
+                    distances_data = record.get("Distances", [])
+                    for i, dist in enumerate(distances_data):
+                        start_pt = None
+                        end_pt = None
+                        
+                        # Try new format first (start/end objects)
+                        if "start" in dist and "end" in dist:
+                            start_pt = dist.get("start")
+                            end_pt = dist.get("end")
+                        # Fall back to old coords string format
+                        elif "coords" in dist:
+                            coords = parse_coords(dist.get("coords", ""))
+                            if len(coords) >= 2:
+                                start_pt = coords[0]
+                                end_pt = coords[1]
+                        
+                        if start_pt and end_pt:
+                            value = dist.get("value")
+                            if value is None:
+                                # Calculate distance if not provided
+                                dx = end_pt["x"] - start_pt["x"]
+                                dy = end_pt["y"] - start_pt["y"]
+                                value = (dx**2 + dy**2) ** 0.5
+                            frame_ann["measurements"]["distances"].append({
+                                "id": dist.get("id", f"dist-{i+1}"),
+                                "label": dist.get("name", dist.get("label", f"#{i+1}")),
+                                "start": start_pt,
+                                "end": end_pt,
+                                "value": value,
+                                "color": dist.get("color", "#4fc3f7")
+                            })
+                    
+                    # Parse Angles (handles both old coords format and new point1/point2/point3 format)
+                    angles_data = record.get("Angles", [])
+                    for i, ang in enumerate(angles_data):
+                        p1 = None
+                        p2 = None
+                        p3 = None
+                        
+                        # Try new format first (point1/point2/point3 objects)
+                        if "point1" in ang and "point2" in ang and "point3" in ang:
+                            p1 = ang.get("point1")
+                            p2 = ang.get("point2")
+                            p3 = ang.get("point3")
+                        # Fall back to old coords string format
+                        elif "coords" in ang:
+                            coords = parse_coords(ang.get("coords", ""))
+                            if len(coords) >= 3:
+                                p1, p2, p3 = coords[0], coords[1], coords[2]
+                        
+                        if p1 and p2 and p3:
+                            # Calculate angle if not provided
+                            value = ang.get("value")
+                            if value is None:
+                                # Calculate angle from three points
+                                v1 = {"x": p1["x"] - p2["x"], "y": p1["y"] - p2["y"]}
+                                v2 = {"x": p3["x"] - p2["x"], "y": p3["y"] - p2["y"]}
+                                dot = v1["x"] * v2["x"] + v1["y"] * v2["y"]
+                                mag1 = (v1["x"]**2 + v1["y"]**2) ** 0.5
+                                mag2 = (v2["x"]**2 + v2["y"]**2) ** 0.5
+                                if mag1 > 0 and mag2 > 0:
+                                    cos_val = max(-1, min(1, dot / (mag1 * mag2)))
+                                    import math
+                                    value = math.acos(cos_val) * 180 / math.pi
+                                else:
+                                    value = 0
+                            frame_ann["measurements"]["angles"].append({
+                                "id": ang.get("id", f"angle-{i+1}"),
+                                "label": ang.get("name", ang.get("label", f"#{i+1}")),
+                                "point1": p1,
+                                "point2": p2,
+                                "point3": p3,
+                                "value": value,
+                                "isReflex": ang.get("isReflex", False),
+                                "color": ang.get("color", "#4fc3f7")
+                            })
+                    
+                except json.JSONDecodeError as e:
+                    logger.warning(f"Error parsing line {line_num} in {annotations_path}: {e}")
+                    continue
+        
+        # Write to temp file
+        temp_annotations = {study_id: {}}
+        for frame_idx, frame_ann in all_frame_annotations.items():
+            temp_annotations[study_id][str(frame_idx)] = frame_ann
+        
+        with temp_annotations_file.open("w", encoding="utf-8") as f:
+            json.dump(temp_annotations, f, indent=2)
+        
+        # Also load into memory
+        if study_id not in _frame_annotations:
+            _frame_annotations[study_id] = {}
+        for frame_idx, frame_ann in all_frame_annotations.items():
+            _frame_annotations[study_id][frame_idx] = frame_ann
+        
+        logger.info(f"Loaded {len(all_frame_annotations)} frames with annotations from {annotations_path}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error loading study annotations: {e}")
+        import traceback
+        logger.error(traceback.format_exc())
+        return False
+
+
 def list_studies() -> List[str]:
     """List all saved study IDs."""
     if not STUDY_DIR.exists():
@@ -1047,10 +1307,129 @@ def list_studies() -> List[str]:
 
 @app.get("/study/{study_id}")
 async def get_study(study_id: str) -> JSONResponse:
-    data = load_study(study_id)
-    if not data:
+    """
+    Load a saved study for viewing.
+    This endpoint:
+    1. Loads study metadata
+    2. Finds and copies the video file to temp (with new video_id)
+    3. Copies keypoints file to temp if it exists
+    4. Parses JSONL annotations and writes to temp format
+    5. Returns all necessary data for the frontend
+    """
+    study_dir = STUDY_DIR / study_id
+    
+    if not study_dir.exists():
         raise HTTPException(status_code=404, detail="Study not found")
-    return JSONResponse(data)
+    
+    # Load metadata
+    metadata = load_study(study_id)
+    if not metadata:
+        metadata = {}
+    
+    original_filename = metadata.get("original_filename", "")
+    
+    # Find and copy video file to temp
+    video_path = None
+    video_id = None
+    
+    # Try to find video by original filename first
+    if original_filename:
+        potential_path = study_dir / original_filename
+        if potential_path.exists():
+            video_path = potential_path
+    
+    # If not found, look for any video file in the study directory
+    if not video_path:
+        for ext in [".mp4", ".avi", ".mov", ".mkv"]:
+            for f in study_dir.iterdir():
+                if f.suffix.lower() == ext:
+                    video_path = f
+                    original_filename = f.name
+                    break
+            if video_path:
+                break
+    
+    if not video_path or not video_path.exists():
+        raise HTTPException(status_code=404, detail="Video file not found in study folder")
+    
+    # Generate new video_id and copy to temp
+    video_id = uuid.uuid4().hex
+    video_extension = video_path.suffix.lower()
+    temp_video_path = TEMP_DIR / f"video_{video_id}{video_extension}"
+    
+    try:
+        shutil.copy2(video_path, temp_video_path)
+        logger.info(f"Copied video to temp: {temp_video_path}")
+    except Exception as e:
+        logger.error(f"Failed to copy video to temp: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to prepare video: {e}")
+    
+    # Get video info
+    try:
+        video_info = get_video_info(temp_video_path)
+        total_frames = video_info["total_frames"]
+        fps = video_info["fps"]
+        
+        frames = [
+            {
+                "frame_index": i,
+                "timestamp": i / fps if fps > 0 else 0.0,
+            }
+            for i in range(total_frames)
+        ]
+    except Exception as e:
+        logger.error(f"Failed to read video info: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to read video: {e}")
+    
+    # Check for keypoints file in study folder and copy to temp
+    keypoints_tracks = {}
+    has_keypoints = False
+    
+    # Look for keypoints file in study folder (might be named differently)
+    for f in study_dir.iterdir():
+        if f.suffix.lower() == ".jsonl" and "keypoints" in f.name.lower():
+            keypoints_path = TEMP_DIR / f"keypoints_{video_id}.jsonl"
+            try:
+                shutil.copy2(f, keypoints_path)
+                keypoints_tracks = load_keypoints_tracks(keypoints_path)
+                has_keypoints = len(keypoints_tracks) > 0
+                logger.info(f"Copied keypoints file to temp: {keypoints_path}")
+            except Exception as e:
+                logger.warning(f"Failed to copy keypoints file: {e}")
+            break
+    
+    # Load annotations from JSONL to temp
+    load_study_annotations_to_temp(study_id)
+    
+    # Store in temp_studies for propagation support
+    _temp_studies[video_id] = {
+        "video_id": video_id,
+        "frames": frames,
+        "keypoints_tracks": keypoints_tracks,
+        "total_frames": total_frames,
+        "metadata": {
+            "video_filename": original_filename,
+            "total_frames": total_frames,
+            "has_keypoints": has_keypoints,
+        },
+    }
+    
+    response_data = {
+        "study_id": study_id,
+        "video_id": video_id,
+        "original_filename": original_filename,
+        "frames": frames,
+        "keypoints_tracks": keypoints_tracks,
+        "total_frames": total_frames,
+        "kind": "video",
+        "metadata": {
+            "video_filename": original_filename,
+            "total_frames": total_frames,
+            "has_keypoints": has_keypoints,
+        },
+    }
+    
+    return JSONResponse(response_data)
 
 
 @app.get("/studies")
@@ -1183,11 +1562,48 @@ async def propagate_labels(
     })
 
 @app.post("/reset_session")
-async def reset_session():
-    """Clears all in-memory annotations to ensure a fresh state."""
-    global _frame_annotations
+async def reset_session(clear_temp: bool = True):
+    """
+    Clears all in-memory annotations and optionally temp files to ensure a fresh state.
+    
+    Args:
+        clear_temp: If True, also clears temp folder files (default: True)
+    """
+    global _frame_annotations, _temp_studies
+    
+    # Clear in-memory annotations
     _frame_annotations.clear()
-    return JSONResponse({"status": "session_cleared"})
+    _temp_studies.clear()
+    
+    # Clear video cache
+    with _video_cache_lock:
+        for video_id, cache_entry in _video_cache.items():
+            try:
+                cache_entry["capture"].release()
+            except Exception:
+                pass
+        _video_cache.clear()
+    
+    files_cleared = 0
+    
+    # Clear temp folder files if requested
+    if clear_temp and TEMP_DIR.exists():
+        try:
+            for item in TEMP_DIR.iterdir():
+                try:
+                    if item.is_file():
+                        item.unlink()
+                        files_cleared += 1
+                    elif item.is_dir():
+                        shutil.rmtree(item)
+                        files_cleared += 1
+                except Exception as e:
+                    logger.warning(f"Failed to delete temp item {item}: {e}")
+            logger.info(f"Cleared temp directory: {files_cleared} items deleted")
+        except Exception as e:
+            logger.warning(f"Error clearing temp directory: {e}")
+    
+    return JSONResponse({"status": "session_cleared", "files_cleared": files_cleared})
 
 if __name__ == "__main__":
     import uvicorn

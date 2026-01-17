@@ -1,15 +1,5 @@
 {
   "test": {
-    "0": {
-      "keypoints": [],
-      "lines": [],
-      "rois": [],
-      "measurements": {
-        "distances": [],
-        "angles": []
-      },
-      "bounding_boxes": {}
-    },
     "10": {
       "keypoints": [
         {
@@ -24,7 +14,7 @@
           "label": "#2",
           "x": 304.4851258581236,
           "y": 477.75743707093824,
-          "color": "#ff7043"
+          "color": "#ff5252"
         }
       ],
       "lines": [
@@ -39,7 +29,7 @@
             "x": 1107.0480549199085,
             "y": 169.22959572845159
           },
-          "color": "#ff5252"
+          "color": "#4fc3f7"
         },
         {
           "id": "line-2",
@@ -52,7 +42,7 @@
             "x": 984.0274599542334,
             "y": 382.0747520976354
           },
-          "color": "#ff7043"
+          "color": "#4fc3f7"
         }
       ],
       "rois": [
@@ -77,7 +67,7 @@
               "y": 323.4935163996949
             }
           ],
-          "color": "#ff5252"
+          "color": "#4fc3f7"
         },
         {
           "id": "roi-2",
@@ -100,7 +90,7 @@
               "y": 350.83142639206716
             }
           ],
-          "color": "#ff7043"
+          "color": "#4fc3f7"
         }
       ],
       "measurements": {
@@ -117,7 +107,7 @@
               "y": 758.9473684210527
             },
             "value": 339.1421270561896,
-            "color": "#ff5252"
+            "color": "#4fc3f7"
           },
           {
             "id": "dist-2",
@@ -131,7 +121,7 @@
               "y": 327.3989321128909
             },
             "value": 680.0920122685901,
-            "color": "#ff7043"
+            "color": "#4fc3f7"
           }
         ],
         "angles": [
@@ -151,7 +141,8 @@
               "y": 591.0144927536232
             },
             "value": 88.10714793057895,
-            "color": "#ff5252"
+            "isReflex": false,
+            "color": "#4fc3f7"
           },
           {
             "id": "angle-2",
@@ -169,189 +160,10 @@
               "y": 479.71014492753625
             },
             "value": 85.98819610224378,
-            "color": "#ff7043"
+            "isReflex": false,
+            "color": "#4fc3f7"
           }
         ]
-      },
-      "bounding_boxes": {}
-    },
-    "11": {
-      "keypoints": [],
-      "lines": [],
-      "rois": [],
-      "measurements": {
-        "distances": [],
-        "angles": []
-      },
-      "bounding_boxes": {}
-    },
-    "9": {
-      "keypoints": [],
-      "lines": [],
-      "rois": [],
-      "measurements": {
-        "distances": [],
-        "angles": []
-      },
-      "bounding_boxes": {}
-    },
-    "8": {
-      "keypoints": [],
-      "lines": [],
-      "rois": [],
-      "measurements": {
-        "distances": [],
-        "angles": []
-      },
-      "bounding_boxes": {}
-    },
-    "7": {
-      "keypoints": [],
-      "lines": [],
-      "rois": [],
-      "measurements": {
-        "distances": [],
-        "angles": []
-      },
-      "bounding_boxes": {}
-    },
-    "6": {
-      "keypoints": [],
-      "lines": [],
-      "rois": [],
-      "measurements": {
-        "distances": [],
-        "angles": []
-      },
-      "bounding_boxes": {}
-    },
-    "12": {
-      "keypoints": [],
-      "lines": [],
-      "rois": [],
-      "measurements": {
-        "distances": [],
-        "angles": []
-      },
-      "bounding_boxes": {}
-    },
-    "13": {
-      "keypoints": [],
-      "lines": [],
-      "rois": [],
-      "measurements": {
-        "distances": [],
-        "angles": []
-      },
-      "bounding_boxes": {}
-    },
-    "14": {
-      "keypoints": [],
-      "lines": [],
-      "rois": [],
-      "measurements": {
-        "distances": [],
-        "angles": []
-      },
-      "bounding_boxes": {}
-    },
-    "15": {
-      "keypoints": [],
-      "lines": [],
-      "rois": [],
-      "measurements": {
-        "distances": [],
-        "angles": []
-      },
-      "bounding_boxes": {}
-    },
-    "16": {
-      "keypoints": [],
-      "lines": [],
-      "rois": [],
-      "measurements": {
-        "distances": [],
-        "angles": []
-      },
-      "bounding_boxes": {}
-    },
-    "17": {
-      "keypoints": [],
-      "lines": [],
-      "rois": [],
-      "measurements": {
-        "distances": [],
-        "angles": []
-      },
-      "bounding_boxes": {}
-    },
-    "18": {
-      "keypoints": [],
-      "lines": [],
-      "rois": [],
-      "measurements": {
-        "distances": [],
-        "angles": []
-      },
-      "bounding_boxes": {}
-    },
-    "19": {
-      "keypoints": [],
-      "lines": [],
-      "rois": [],
-      "measurements": {
-        "distances": [],
-        "angles": []
-      },
-      "bounding_boxes": {}
-    },
-    "20": {
-      "keypoints": [],
-      "lines": [],
-      "rois": [],
-      "measurements": {
-        "distances": [],
-        "angles": []
-      },
-      "bounding_boxes": {}
-    },
-    "21": {
-      "keypoints": [],
-      "lines": [],
-      "rois": [],
-      "measurements": {
-        "distances": [],
-        "angles": []
-      },
-      "bounding_boxes": {}
-    },
-    "22": {
-      "keypoints": [],
-      "lines": [],
-      "rois": [],
-      "measurements": {
-        "distances": [],
-        "angles": []
-      },
-      "bounding_boxes": {}
-    },
-    "23": {
-      "keypoints": [],
-      "lines": [],
-      "rois": [],
-      "measurements": {
-        "distances": [],
-        "angles": []
-      },
-      "bounding_boxes": {}
-    },
-    "24": {
-      "keypoints": [],
-      "lines": [],
-      "rois": [],
-      "measurements": {
-        "distances": [],
-        "angles": []
       },
       "bounding_boxes": {}
     },
@@ -362,21 +174,21 @@
           "label": "#1",
           "x": 271.2890922959573,
           "y": 452.37223493516404,
-          "color": "#ffab40"
+          "color": "#ff5252"
         },
         {
           "id": "kp-2",
           "label": "#2",
           "x": 232.23493516399697,
           "y": 647.6430205949657,
-          "color": "#ffd740"
+          "color": "#ff5252"
         },
         {
           "id": "kp-3",
           "label": "#3",
           "x": 406.02593440122047,
           "y": 452.37223493516404,
-          "color": "#eeff41"
+          "color": "#ff5252"
         }
       ],
       "lines": [
@@ -391,7 +203,7 @@
             "x": 939.115179252479,
             "y": 175.08771929824562
           },
-          "color": "#ffab40"
+          "color": "#4fc3f7"
         },
         {
           "id": "line-2",
@@ -404,7 +216,7 @@
             "x": 741.8916857360794,
             "y": 5.202135774218155
           },
-          "color": "#ffd740"
+          "color": "#4fc3f7"
         }
       ],
       "rois": [
@@ -429,7 +241,7 @@
               "y": 178.99313501144167
             }
           ],
-          "color": "#ffab40"
+          "color": "#4fc3f7"
         },
         {
           "id": "roi-2",
@@ -452,7 +264,7 @@
               "y": 413.31807780320366
             }
           ],
-          "color": "#ffd740"
+          "color": "#4fc3f7"
         }
       ],
       "measurements": {
@@ -469,7 +281,7 @@
               "y": 526.5751334858886
             },
             "value": 574.0595784284989,
-            "color": "#ffab40"
+            "color": "#4fc3f7"
           },
           {
             "id": "dist-2",
@@ -483,7 +295,7 @@
               "y": 317.63539282990087
             },
             "value": 516.7154270513037,
-            "color": "#ffd740"
+            "color": "#4fc3f7"
           }
         ],
         "angles": [
@@ -503,7 +315,8 @@
               "y": 674.980930587338
             },
             "value": 81.91212002546199,
-            "color": "#ffab40"
+            "isReflex": false,
+            "color": "#4fc3f7"
           },
           {
             "id": "angle-2",
@@ -520,140 +333,11 @@
               "x": 1550.3127383676583,
               "y": 159.46605644546148
             },
-            "value": 84.7068972951705,
-            "color": "#ffd740"
+            "value": 84.70689729517049,
+            "isReflex": false,
+            "color": "#4fc3f7"
           }
         ]
-      },
-      "bounding_boxes": {}
-    },
-    "26": {
-      "keypoints": [],
-      "lines": [],
-      "rois": [],
-      "measurements": {
-        "distances": [],
-        "angles": []
-      },
-      "bounding_boxes": {}
-    },
-    "5": {
-      "keypoints": [],
-      "lines": [],
-      "rois": [],
-      "measurements": {
-        "distances": [],
-        "angles": []
-      },
-      "bounding_boxes": {}
-    },
-    "4": {
-      "keypoints": [],
-      "lines": [],
-      "rois": [],
-      "measurements": {
-        "distances": [],
-        "angles": []
-      },
-      "bounding_boxes": {}
-    },
-    "3": {
-      "keypoints": [],
-      "lines": [],
-      "rois": [],
-      "measurements": {
-        "distances": [],
-        "angles": []
-      },
-      "bounding_boxes": {}
-    },
-    "2": {
-      "keypoints": [],
-      "lines": [],
-      "rois": [],
-      "measurements": {
-        "distances": [],
-        "angles": []
-      },
-      "bounding_boxes": {}
-    },
-    "27": {
-      "keypoints": [],
-      "lines": [],
-      "rois": [],
-      "measurements": {
-        "distances": [],
-        "angles": []
-      },
-      "bounding_boxes": {}
-    },
-    "28": {
-      "keypoints": [],
-      "lines": [],
-      "rois": [],
-      "measurements": {
-        "distances": [],
-        "angles": []
-      },
-      "bounding_boxes": {}
-    },
-    "29": {
-      "keypoints": [],
-      "lines": [],
-      "rois": [],
-      "measurements": {
-        "distances": [],
-        "angles": []
-      },
-      "bounding_boxes": {}
-    },
-    "30": {
-      "keypoints": [],
-      "lines": [],
-      "rois": [],
-      "measurements": {
-        "distances": [],
-        "angles": []
-      },
-      "bounding_boxes": {}
-    },
-    "31": {
-      "keypoints": [],
-      "lines": [],
-      "rois": [],
-      "measurements": {
-        "distances": [],
-        "angles": []
-      },
-      "bounding_boxes": {}
-    },
-    "32": {
-      "keypoints": [],
-      "lines": [],
-      "rois": [],
-      "measurements": {
-        "distances": [],
-        "angles": []
-      },
-      "bounding_boxes": {}
-    },
-    "33": {
-      "keypoints": [],
-      "lines": [],
-      "rois": [],
-      "measurements": {
-        "distances": [],
-        "angles": []
-      },
-      "bounding_boxes": {}
-    },
-    "34": {
-      "keypoints": [],
-      "lines": [],
-      "rois": [],
-      "measurements": {
-        "distances": [],
-        "angles": []
       },
       "bounding_boxes": {}
     }
