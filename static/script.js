@@ -264,14 +264,6 @@ async function uploadVideo() {
   
   setMode("uploading", "Uploading video...");
   
-  // Reset session and clear temp files to ensure fresh state
-  try { 
-    await fetch("/reset_session?clear_temp=true", { method: "POST" }); 
-    console.log("[uploadVideo] Session reset and temp files cleared");
-  } catch (e) {
-    console.warn("[uploadVideo] Failed to reset session:", e);
-  }
-  
   // Reset client-side state
   state.studyId = null;
   state.tempStudyId = null;
@@ -2708,6 +2700,7 @@ async function saveStudy() {
   // This ensures any annotations created on the current frame are persisted before migration
   const oldTempStudyId = state.tempStudyId;
   const oldStudyId = state.studyId;
+  const isNewUpload = !oldStudyId;
   const currentStudyIdForSave = oldStudyId || oldTempStudyId;
   
   console.log(`[saveStudy] Saving current frame ${state.currentFrameIndex} annotations under ${currentStudyIdForSave}`);
@@ -2768,6 +2761,8 @@ async function saveStudy() {
     video_id: state.videoId,
     frames: state.frames,
     total_frames: state.frames.length,
+    is_new_upload: isNewUpload,
+    ...(oldStudyId ? { source_study_id: oldStudyId } : {}),
   };
   
   const formData = new FormData();
@@ -2847,15 +2842,6 @@ async function loadStudyById(studyId) {
   }
   
   setMode("loading", "Loading study...");
-
-  // Reset server session memory and clear temp files to ensure fresh state
-  // This prevents old temp videos from accumulating
-  try {
-    await fetch("/reset_session?clear_temp=true", { method: "POST" });
-    console.log("[loadStudyById] Session reset and temp files cleared");
-  } catch (err) {
-    console.warn("Failed to reset session memory:", err);
-  }
 
   const res = await fetch(`/study/${encodeURIComponent(studyId)}`);
   if (!res.ok) {

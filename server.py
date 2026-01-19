@@ -1,20 +1,23 @@
 import os
 import json
 import logging
+import secrets
 import shutil
+import sqlite3
 import traceback
 import uuid
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 from threading import Lock
 
 import cv2
-from fastapi import Body, FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import Body, FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse, Response
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
+from passlib.hash import bcrypt
 
 # Set up logging
 logging.basicConfig(
@@ -26,24 +29,222 @@ logger = logging.getLogger(__name__)
 BASE_DIR = Path(__file__).parent.resolve()
 STATIC_DIR = BASE_DIR / "static"
 DATA_DIR = BASE_DIR / "data"
-STUDY_DIR = DATA_DIR / "studies"
-TEMP_DIR = DATA_DIR / "temp"
+STUDY_BASE = DATA_DIR / "studies"
+TEMP_BASE = DATA_DIR / "temp"
+USERS_DB = DATA_DIR / "users.db"
+
+ADMIN_EMAIL = "cd2859@cumc.columbia.edu"
+SESSION_COOKIE_NAME = "session_id"
+RATE_LIMIT_WINDOW = 300
+RATE_LIMIT_MAX = 5
 
 # Create directories
-for path in (STATIC_DIR, STUDY_DIR, TEMP_DIR):
+for path in (STATIC_DIR, STUDY_BASE, TEMP_BASE):
     os.makedirs(path, exist_ok=True)
 
 # Clear temp directory on startup
-if TEMP_DIR.exists():
+if TEMP_BASE.exists():
     try:
-        for item in TEMP_DIR.iterdir():
+        for item in TEMP_BASE.iterdir():
             if item.is_file():
                 item.unlink()
             elif item.is_dir():
                 shutil.rmtree(item)
-        logger.info(f"Cleared temp directory: {TEMP_DIR}")
+        logger.info(f"Cleared temp directory: {TEMP_BASE}")
     except Exception as e:
         logger.warning(f"Error clearing temp directory: {e}")
+
+SESSIONS: Dict[str, Dict[str, Any]] = {}
+RATE_LIMITS: Dict[str, List[float]] = {}
+
+
+def init_user_db() -> None:
+    with sqlite3.connect(USERS_DB) as conn:
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS users (
+                email TEXT PRIMARY KEY,
+                password_hash TEXT NOT NULL,
+                is_admin INTEGER NOT NULL DEFAULT 0,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            )
+            """
+        )
+        conn.commit()
+
+
+init_user_db()
+
+
+def _normalize_email(email: str) -> str:
+    return email.strip().lower()
+
+
+def _sanitize_segment(value: str, fallback: str) -> str:
+    cleaned = "".join(ch if ch.isalnum() or ch in ("-", "_") else "_" for ch in value.strip().lower())
+    return cleaned or fallback
+
+
+def _user_key(email: str) -> str:
+    local = email.split("@", 1)[0].strip().lower()
+    safe = "".join(ch if ch.isalnum() or ch in ("-", "_") else "_" for ch in local)
+    return safe or "user"
+
+
+def _ensure_user_dirs(user_key: str) -> None:
+    (STUDY_BASE / user_key).mkdir(parents=True, exist_ok=True)
+    (TEMP_BASE / user_key).mkdir(parents=True, exist_ok=True)
+
+
+def _user_dirs(request: Request) -> tuple[str, Path, Path]:
+    user = getattr(request.state, "user", None)
+    if not user or "user_key" not in user:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    key = user["user_key"]
+    _ensure_user_dirs(key)
+    return key, STUDY_BASE / key, TEMP_BASE / key
+
+
+def _get_user(email: str) -> Optional[Dict[str, Any]]:
+    with sqlite3.connect(USERS_DB) as conn:
+        conn.row_factory = sqlite3.Row
+        row = conn.execute(
+            "SELECT email, password_hash, is_admin FROM users WHERE email = ?",
+            (email,),
+        ).fetchone()
+    return dict(row) if row else None
+
+
+def _rate_key(request: Request, email: str) -> str:
+    ip = request.client.host if request.client else "unknown"
+    return f"{ip}:{email}"
+
+
+def _prune_attempts(attempts: List[float], now: float) -> List[float]:
+    cutoff = now - RATE_LIMIT_WINDOW
+    return [t for t in attempts if t >= cutoff]
+
+
+def _is_rate_limited(key: str) -> bool:
+    now = time.time()
+    attempts = _prune_attempts(RATE_LIMITS.get(key, []), now)
+    RATE_LIMITS[key] = attempts
+    return len(attempts) >= RATE_LIMIT_MAX
+
+
+def _record_attempt(key: str) -> None:
+    now = time.time()
+    attempts = _prune_attempts(RATE_LIMITS.get(key, []), now)
+    attempts.append(now)
+    RATE_LIMITS[key] = attempts
+
+
+def _clear_attempts(key: str) -> None:
+    RATE_LIMITS.pop(key, None)
+
+
+def _create_session(email: str, is_admin: bool) -> str:
+    session_id = secrets.token_urlsafe(32)
+    user_key = _user_key(email)
+    _ensure_user_dirs(user_key)
+    SESSIONS[session_id] = {
+        "email": email,
+        "user_key": user_key,
+        "is_admin": is_admin,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    return session_id
+
+
+def _wants_html(request: Request) -> bool:
+    accept = request.headers.get("accept", "")
+    return "text/html" in accept.lower()
+
+
+def _render_login_page(error: Optional[str] = None) -> str:
+    error_block = ""
+    if error:
+        error_block = f"<div class=\"error\">{error}</div>"
+    return f"""<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>XR Annotate</title>
+    <style>
+      body {{
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
+        background: #0f1117;
+        color: #f5f7ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        margin: 0;
+      }}
+      .card {{
+        background: #1b1f2a;
+        padding: 2rem;
+        border-radius: 12px;
+        width: 100%;
+        max-width: 380px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      }}
+      h1 {{
+        margin: 0 0 1.5rem 0;
+        font-size: 1.6rem;
+        font-weight: 700;
+      }}
+      label {{
+        display: block;
+        margin: 0 0 0.4rem 0;
+        font-size: 0.9rem;
+      }}
+      input {{
+        width: 100%;
+        padding: 0.6rem 0.75rem;
+        margin-bottom: 1rem;
+        border-radius: 6px;
+        border: 1px solid #2f3546;
+        background: #10131c;
+        color: #f5f7ff;
+        box-sizing: border-box;
+      }}
+      button {{
+        width: 100%;
+        padding: 0.65rem 0.8rem;
+        border-radius: 6px;
+        border: none;
+        background: #4fc3f7;
+        font-weight: 600;
+        cursor: pointer;
+      }}
+      .error {{
+        background: #2c1b1f;
+        border: 1px solid #7f1d1d;
+        color: #fecaca;
+        padding: 0.6rem;
+        border-radius: 6px;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+      }}
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>XR Annotate</h1>
+      {error_block}
+      <form method="post" action="/auth/login">
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" required autofocus />
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" required />
+        <button type="submit">Login</button>
+      </form>
+    </div>
+  </body>
+</html>"""
 
 app = FastAPI(title="Video Labeler")
 
@@ -56,28 +257,41 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+PUBLIC_PATHS = {"/login", "/auth/login", "/favicon.ico"}
+
+
+@app.middleware("http")
+async def auth_middleware(request: Request, call_next):
+    path = request.url.path
+    if path in PUBLIC_PATHS:
+        return await call_next(request)
+    session_id = request.cookies.get(SESSION_COOKIE_NAME)
+    if session_id and session_id in SESSIONS:
+        request.state.user = SESSIONS[session_id]
+        return await call_next(request)
+    if _wants_html(request):
+        return RedirectResponse("/login", status_code=303)
+    return JSONResponse({"detail": "Unauthorized"}, status_code=401)
+
+
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
-app.mount("/studies", StaticFiles(directory=STUDY_DIR), name="studies")
-
-
-@app.get("/health")
-async def health() -> dict[str, str]:
-    return {"status": "ok"}
 
 
 @app.post("/cache/clear")
-async def clear_video_cache() -> JSONResponse:
-    """Manually clear the video capture cache."""
+async def clear_video_cache(request: Request) -> JSONResponse:
+    """Manually clear the video capture cache for the current user."""
+    user_key, _, _ = _user_dirs(request)
     with _video_cache_lock:
-        count = len(_video_cache)
-        for video_id, cache_entry in _video_cache.items():
+        user_cache = _user_video_cache(user_key)
+        count = len(user_cache)
+        for _, cache_entry in list(user_cache.items()):
             try:
                 cache_entry["capture"].release()
             except Exception:
                 pass
-        _video_cache.clear()
+        user_cache.clear()
     
-    logger.info(f"Cleared video cache: {count} video captures released")
+    logger.info(f"Cleared video cache for {user_key}: {count} video captures released")
     return JSONResponse({"status": "cleared", "count": count})
 
 
@@ -87,39 +301,55 @@ async def favicon():
     raise HTTPException(status_code=404)
 
 
+@app.get("/login")
+async def login_page(error: Optional[str] = None) -> HTMLResponse:
+    return HTMLResponse(_render_login_page(error))
+
+
+@app.post("/auth/login")
+async def login_action(
+    request: Request,
+    email: str = Form(...),
+    password: str = Form(...),
+):
+    email_norm = _normalize_email(email)
+    if not email_norm or not password:
+        return HTMLResponse(_render_login_page("Email and password are required."), status_code=400)
+
+    key = _rate_key(request, email_norm)
+    if _is_rate_limited(key):
+        return HTMLResponse(_render_login_page("Too many attempts. Try again later."), status_code=429)
+
+    user = _get_user(email_norm)
+    if not user or not bcrypt.verify(password, user["password_hash"]):
+        _record_attempt(key)
+        return HTMLResponse(_render_login_page("Invalid email or password."), status_code=401)
+
+    _clear_attempts(key)
+    session_id = _create_session(user["email"], bool(user["is_admin"]))
+    response = RedirectResponse("/", status_code=303)
+    secure_cookie = request.url.scheme == "https"
+    response.set_cookie(
+        SESSION_COOKIE_NAME,
+        session_id,
+        httponly=True,
+        samesite="strict",
+        secure=secure_cookie,
+    )
+    return response
+
+
+@app.get("/README.html")
+async def help_page() -> FileResponse:
+    return FileResponse(BASE_DIR / "README.html")
+
 @app.get("/")
 async def index() -> FileResponse:
     index_path = STATIC_DIR / "index.html"
     return FileResponse(index_path)
 
 
-@app.get("/temp/{filename:path}")
-async def serve_temp_file(filename: str) -> FileResponse:
-    """Serve files from temp directory."""
-    file_path = TEMP_DIR / filename
-    try:
-        file_path = file_path.resolve()
-        temp_dir_resolved = TEMP_DIR.resolve()
-        if not str(file_path).startswith(str(temp_dir_resolved)):
-            raise HTTPException(status_code=403, detail="Access denied")
-    except Exception:
-        raise HTTPException(status_code=403, detail="Invalid path")
-    
-    if not file_path.exists() or not file_path.is_file():
-        raise HTTPException(status_code=404, detail=f"File not found: {filename}")
-    
-    content_type = "application/octet-stream"
-    if filename.lower().endswith(".png"):
-        content_type = "image/png"
-    elif filename.lower().endswith((".jpg", ".jpeg")):
-        content_type = "image/jpeg"
-    elif filename.lower().endswith((".mp4", ".avi", ".mov")):
-        content_type = "video/mp4"
-    
-    return FileResponse(file_path, media_type=content_type)
-
-
-def get_video_capture(video_id: str, video_path: Path) -> cv2.VideoCapture:
+def get_video_capture(user_key: str, video_id: str, video_path: Path) -> cv2.VideoCapture:
     """
     Get a cached video capture object, or create a new one.
     Keeps video files open in memory for faster frame access.
@@ -127,9 +357,10 @@ def get_video_capture(video_id: str, video_path: Path) -> cv2.VideoCapture:
     current_time = time.time()
     
     with _video_cache_lock:
+        user_cache = _user_video_cache(user_key)
         # Check if we have a cached capture for this video
-        if video_id in _video_cache:
-            cache_entry = _video_cache[video_id]
+        if video_id in user_cache:
+            cache_entry = user_cache[video_id]
             
             # Check if capture is still valid
             if cache_entry["capture"].isOpened():
@@ -140,21 +371,21 @@ def get_video_capture(video_id: str, video_path: Path) -> cv2.VideoCapture:
             else:
                 # Capture is closed, remove from cache
                 logger.info(f"Cached video capture for {video_id} was closed, removing from cache")
-                del _video_cache[video_id]
+                del user_cache[video_id]
         
         # Clean up stale cache entries (older than TTL)
         stale_keys = []
-        for vid, cache_entry in _video_cache.items():
+        for vid, cache_entry in user_cache.items():
             if current_time - cache_entry["last_access"] > VIDEO_CACHE_TTL:
                 stale_keys.append(vid)
         
         for vid in stale_keys:
             logger.info(f"Closing stale video capture for {vid} (inactive for {VIDEO_CACHE_TTL}s)")
             try:
-                _video_cache[vid]["capture"].release()
+                user_cache[vid]["capture"].release()
             except Exception:
                 pass
-            del _video_cache[vid]
+            del user_cache[vid]
         
         # Create new capture
         cap = cv2.VideoCapture(str(video_path))
@@ -162,7 +393,7 @@ def get_video_capture(video_id: str, video_path: Path) -> cv2.VideoCapture:
             raise ValueError(f"Could not open video: {video_path}")
         
         # Cache it
-        _video_cache[video_id] = {
+        user_cache[video_id] = {
             "capture": cap,
             "path": video_path,
             "last_access": current_time,
@@ -245,6 +476,7 @@ def load_keypoints_tracks(jsonl_path: Path) -> Dict[int, List[Dict[str, Any]]]:
 
 @app.post("/upload")
 async def upload_file(
+    request: Request,
     video_file: UploadFile = File(...),
     keypoints_file: UploadFile = File(None)
 ) -> JSONResponse:
@@ -255,18 +487,24 @@ async def upload_file(
     if not video_file.filename:
         raise HTTPException(status_code=400, detail="Video filename is required.")
     
+    user_key, _, temp_root = _user_dirs(request)
+    _clear_user_temp(user_key, temp_root)
+
     # Save video file
     video_extension = Path(video_file.filename).suffix.lower()
     if video_extension not in [".mp4", ".avi", ".mov", ".mkv"]:
         raise HTTPException(status_code=400, detail="Unsupported video format.")
     
     video_id = uuid.uuid4().hex
-    video_path = TEMP_DIR / f"video_{video_id}{video_extension}"
+    video_path = temp_root / f"video_{video_id}{video_extension}"
     
     try:
         with video_path.open("wb") as buffer:
-            content = await video_file.read()
-            buffer.write(content)
+            while True:
+                chunk = await video_file.read(1024 * 1024)
+                if not chunk:
+                    break
+                buffer.write(chunk)
     except OSError as exc:
         raise HTTPException(status_code=500, detail=f"Failed to store video: {exc}") from exc
     
@@ -295,18 +533,21 @@ async def upload_file(
     logger.info(f"Checking keypoints_file: {keypoints_file}, filename: {keypoints_file.filename if keypoints_file else None}")
     
     if keypoints_file is not None and keypoints_file.filename:
-        keypoints_path = TEMP_DIR / f"keypoints_{video_id}.jsonl"
+        keypoints_path = temp_root / f"keypoints_{video_id}.jsonl"
         try:
             file_size = keypoints_file.size if hasattr(keypoints_file, 'size') else 'unknown'
             logger.info(f"Received keypoints file: {keypoints_file.filename}, size: {file_size}")
             
             with keypoints_path.open("wb") as buffer:
-                content = await keypoints_file.read()
-                buffer.write(content)
+                while True:
+                    chunk = await keypoints_file.read(1024 * 1024)
+                    if not chunk:
+                        break
+                    buffer.write(chunk)
             
-            logger.info(f"Saved keypoints file to: {keypoints_path}, size: {len(content)} bytes")
+            logger.info(f"Saved keypoints file to: {keypoints_path}, size: {keypoints_path.stat().st_size} bytes")
             
-            if len(content) == 0:
+            if keypoints_path.stat().st_size == 0:
                 logger.warning(f"Keypoints file is empty!")
             else:
                 # Verify file was written correctly
@@ -347,7 +588,7 @@ async def upload_file(
     
     # Store video metadata for potential temp study use
     # This allows propagation to work even before study is saved
-    _temp_studies[video_id] = {
+    _user_temp_studies(user_key)[video_id] = {
         "video_id": video_id,
         "frames": frames,
         "keypoints_tracks": keypoints_tracks,
@@ -359,14 +600,15 @@ async def upload_file(
 
 
 @app.get("/video/{video_id}/frame/{frame_index}")
-async def get_frame(video_id: str, frame_index: int) -> Response:
+async def get_frame(request: Request, video_id: str, frame_index: int) -> Response:
     """Get a specific frame image by streaming from video file (with caching)."""
+    user_key, _, temp_root = _user_dirs(request)
     # Find the video file
     video_path = None
     
     # Try common video extensions
     for ext in [".mp4", ".avi", ".mov", ".mkv"]:
-        potential_path = TEMP_DIR / f"video_{video_id}{ext}"
+        potential_path = temp_root / f"video_{video_id}{ext}"
         if potential_path.exists():
             video_path = potential_path
             break
@@ -377,7 +619,7 @@ async def get_frame(video_id: str, frame_index: int) -> Response:
     try:
         # Get cached video capture (or create new one)
         # This keeps the video file open in SERVER memory, not browser
-        cap = get_video_capture(video_id, video_path)
+        cap = get_video_capture(user_key, video_id, video_path)
         
         # Seek to the requested frame
         cap.set(cv2.CAP_PROP_POS_FRAMES, frame_index)
@@ -398,20 +640,22 @@ async def get_frame(video_id: str, frame_index: int) -> Response:
         logger.error(f"Error extracting frame {frame_index} from video {video_id}: {e}")
         # On error, try to remove from cache and retry once
         with _video_cache_lock:
-            if video_id in _video_cache:
+            user_cache = _user_video_cache(user_key)
+            if video_id in user_cache:
                 try:
-                    _video_cache[video_id]["capture"].release()
+                    user_cache[video_id]["capture"].release()
                 except Exception:
                     pass
-                del _video_cache[video_id]
+                del user_cache[video_id]
         raise HTTPException(status_code=500, detail=f"Failed to extract frame: {str(e)}")
 
 
 @app.get("/video/{video_id}/keypoints/{frame_index}")
-async def get_frame_keypoints(video_id: str, frame_index: int) -> JSONResponse:
+async def get_frame_keypoints(request: Request, video_id: str, frame_index: int) -> JSONResponse:
     """Get keypoints/tracks for a specific frame."""
+    _, _, temp_root = _user_dirs(request)
     # Try to load from temp file
-    keypoints_path = TEMP_DIR / f"keypoints_{video_id}.jsonl"
+    keypoints_path = temp_root / f"keypoints_{video_id}.jsonl"
     logger.info(f"Requesting keypoints for video {video_id}, frame {frame_index}")
     logger.info(f"Keypoints file path: {keypoints_path}, exists: {keypoints_path.exists()}")
     
@@ -428,53 +672,106 @@ async def get_frame_keypoints(video_id: str, frame_index: int) -> JSONResponse:
         return JSONResponse({"tracks": []})
 
 
-# Store annotations per frame in memory
-_frame_annotations: Dict[str, Dict[int, Dict[str, Any]]] = {}
+# Store annotations per frame in memory, per user
+_frame_annotations: Dict[str, Dict[str, Dict[int, Dict[str, Any]]]] = {}
 
-# Store video metadata (keypoints_tracks, frames, etc.) for temp studies
-_temp_studies: Dict[str, Dict[str, Any]] = {}
+# Store video metadata (keypoints_tracks, frames, etc.) for temp studies, per user
+_temp_studies: Dict[str, Dict[str, Dict[str, Any]]] = {}
 
-# Video capture cache to avoid reopening video files repeatedly
+# Video capture cache to avoid reopening video files repeatedly (per user)
 # Keeps video files open in SERVER memory for faster frame access
-_video_cache: Dict[str, Dict[str, Any]] = {}  # {video_id: {"capture": cv2.VideoCapture, "path": Path, "last_access": time.time()}}
+_video_cache: Dict[str, Dict[str, Dict[str, Any]]] = {}  # {user_key: {video_id: {"capture": cv2.VideoCapture, "path": Path, "last_access": time.time()}}}
 _video_cache_lock = Lock()
+_temp_annotation_locks: Dict[str, Lock] = {}
+
+
+def _user_frame_annotations(user_key: str) -> Dict[str, Dict[int, Dict[str, Any]]]:
+    return _frame_annotations.setdefault(user_key, {})
+
+
+def _user_temp_studies(user_key: str) -> Dict[str, Dict[str, Any]]:
+    return _temp_studies.setdefault(user_key, {})
+
+
+def _user_video_cache(user_key: str) -> Dict[str, Dict[str, Any]]:
+    return _video_cache.setdefault(user_key, {})
+
+
+def _temp_lock(user_key: str, study_id: str) -> Lock:
+    key = f"{user_key}:{study_id}"
+    lock = _temp_annotation_locks.get(key)
+    if lock is None:
+        lock = Lock()
+        _temp_annotation_locks[key] = lock
+    return lock
+
+
+def _clear_user_temp(user_key: str, temp_root: Path) -> None:
+    # Clear in-memory annotations and temp studies for this user
+    _user_frame_annotations(user_key).clear()
+    _user_temp_studies(user_key).clear()
+
+    # Clear video cache entries for this user
+    with _video_cache_lock:
+        user_cache = _user_video_cache(user_key)
+        for _, cache_entry in list(user_cache.items()):
+            try:
+                cache_entry["capture"].release()
+            except Exception:
+                pass
+        user_cache.clear()
+
+    # Clear temp folder files
+    if temp_root.exists():
+        for item in temp_root.iterdir():
+            try:
+                if item.is_file():
+                    item.unlink()
+                elif item.is_dir():
+                    shutil.rmtree(item)
+            except Exception as e:
+                logger.warning(f"Failed to delete temp item {item}: {e}")
 VIDEO_CACHE_TTL = 300  # 5 minutes in seconds
 
 
 @app.post("/study/{study_id}/frame/{frame_index}/annotations")
 async def save_frame_annotations(
+    request: Request,
     study_id: str,
     frame_index: int,
     payload: Dict[str, Any] = Body(...)
 ) -> JSONResponse:
     """Save annotations for a specific frame."""
-    if study_id not in _frame_annotations:
-        _frame_annotations[study_id] = {}
+    user_key, _, temp_root = _user_dirs(request)
+    frame_annotations = _user_frame_annotations(user_key)
+    if study_id not in frame_annotations:
+        frame_annotations[study_id] = {}
     
-    _frame_annotations[study_id][frame_index] = payload
+    frame_annotations[study_id][frame_index] = payload
     
     # Save to temp file for persistence
-    temp_annotations_file = TEMP_DIR / f"{study_id}_annotations.json"
+    temp_annotations_file = temp_root / f"{study_id}_annotations.json"
     try:
-        # Load existing annotations first
-        existing_annotations = {}
-        if temp_annotations_file.exists():
-            try:
-                with temp_annotations_file.open("r", encoding="utf-8") as f:
-                    existing_annotations = json.load(f)
-            except Exception:
-                existing_annotations = {}
-        
-        # Update with current study's annotations
-        if study_id not in existing_annotations:
-            existing_annotations[study_id] = {}
-        
-        # Convert frame_index to string for JSON consistency
-        existing_annotations[study_id][str(frame_index)] = payload
-        
-        # Write back
-        with temp_annotations_file.open("w", encoding="utf-8") as f:
-            json.dump(existing_annotations, f, indent=2)
+        with _temp_lock(user_key, study_id):
+            # Load existing annotations first
+            existing_annotations = {}
+            if temp_annotations_file.exists():
+                try:
+                    with temp_annotations_file.open("r", encoding="utf-8") as f:
+                        existing_annotations = json.load(f)
+                except Exception:
+                    existing_annotations = {}
+            
+            # Update with current study's annotations
+            if study_id not in existing_annotations:
+                existing_annotations[study_id] = {}
+            
+            # Convert frame_index to string for JSON consistency
+            existing_annotations[study_id][str(frame_index)] = payload
+            
+            # Write back
+            with temp_annotations_file.open("w", encoding="utf-8") as f:
+                json.dump(existing_annotations, f, indent=2)
         
         # Log what was saved
         keypoints_count = len(payload.get('keypoints', []))
@@ -485,9 +782,9 @@ async def save_frame_annotations(
         logger.info(f"Saved annotations for frame {frame_index} of study {study_id}: keypoints={keypoints_count}, lines={lines_count}, rois={rois_count}, distances={distances_count}, angles={angles_count}")
         
         # Also update in-memory storage
-        if study_id not in _frame_annotations:
-            _frame_annotations[study_id] = {}
-        _frame_annotations[study_id][frame_index] = payload
+        if study_id not in frame_annotations:
+            frame_annotations[study_id] = {}
+        frame_annotations[study_id][frame_index] = payload
     except Exception as e:
         logger.warning(f"Failed to save temp annotations file: {e}")
         import traceback
@@ -498,21 +795,24 @@ async def save_frame_annotations(
 
 @app.get("/study/{study_id}/frame/{frame_index}/annotations")
 async def get_frame_annotations(
+    request: Request,
     study_id: str,
     frame_index: int
 ) -> JSONResponse:
     """Get annotations for a specific frame."""
+    user_key, study_root, temp_root = _user_dirs(request)
+    frame_annotations = _user_frame_annotations(user_key)
 
     # 1. Check Memory (Fastest, most recent)
-    frame_annotations = _frame_annotations.get(study_id, {})
+    per_study = frame_annotations.get(study_id, {})
     # Check int key then str key
-    annotations = frame_annotations.get(frame_index) or frame_annotations.get(str(frame_index))
+    annotations = per_study.get(frame_index) or per_study.get(str(frame_index))
     
     if annotations:
         return JSONResponse(annotations)
 
     # 2. Check Temp File (Active session persistence)
-    temp_annotations_file = TEMP_DIR / f"{study_id}_annotations.json"
+    temp_annotations_file = temp_root / f"{study_id}_annotations.json"
     if temp_annotations_file.exists():
         try:
             with temp_annotations_file.open("r", encoding="utf-8") as f:
@@ -525,9 +825,8 @@ async def get_frame_annotations(
         except Exception:
             pass
 
-    """Get annotations for a specific frame."""
     # Try to load from saved study file first
-    study_data = load_study(study_id)
+    study_data = load_study(study_root, study_id)
     if study_data and "frame_annotations" in study_data:
         frame_annotations = study_data["frame_annotations"]
         annotations = frame_annotations.get(str(frame_index)) or frame_annotations.get(frame_index)
@@ -548,10 +847,15 @@ async def get_frame_annotations(
 
 
 @app.post("/study/{from_study_id}/migrate/{to_study_id}")
-async def migrate_study_annotations(from_study_id: str, to_study_id: str) -> JSONResponse:
+async def migrate_study_annotations(
+    request: Request,
+    from_study_id: str,
+    to_study_id: str
+) -> JSONResponse:
     """Migrate annotations from one study ID to another in the temp file."""
-    from_temp_file = TEMP_DIR / f"{from_study_id}_annotations.json"
-    to_temp_file = TEMP_DIR / f"{to_study_id}_annotations.json"
+    user_key, _, temp_root = _user_dirs(request)
+    from_temp_file = temp_root / f"{from_study_id}_annotations.json"
+    to_temp_file = temp_root / f"{to_study_id}_annotations.json"
     
     if not from_temp_file.exists():
         logger.warning(f"Source temp file not found: {from_temp_file}")
@@ -569,60 +873,62 @@ async def migrate_study_annotations(from_study_id: str, to_study_id: str) -> JSO
         
         source_data = temp_annotations[from_study_id]
         
-        # Load or create destination file
-        if to_temp_file.exists():
-            with to_temp_file.open("r", encoding="utf-8") as f:
-                dest_annotations = json.load(f)
-        else:
-            dest_annotations = {}
-        
-        # Copy annotations to destination
-        if to_study_id not in dest_annotations:
-            dest_annotations[to_study_id] = {}
-        
-        # Merge source into destination (destination takes precedence for conflicts)
-        for frame_idx, frame_data in source_data.items():
-            if frame_idx not in dest_annotations[to_study_id]:
-                dest_annotations[to_study_id][frame_idx] = frame_data
+        with _temp_lock(user_key, to_study_id):
+            # Load or create destination file
+            if to_temp_file.exists():
+                with to_temp_file.open("r", encoding="utf-8") as f:
+                    dest_annotations = json.load(f)
             else:
-                # Merge: combine arrays, prefer destination for conflicts
-                dest_frame = dest_annotations[to_study_id][frame_idx]
-                # Merge keypoints, lines, etc. (append if not already present)
-                for key in ['keypoints', 'lines', 'rois']:
-                    if key in frame_data and isinstance(frame_data[key], list):
-                        existing_ids = {item.get('id') for item in dest_frame.get(key, [])}
-                        for item in frame_data[key]:
-                            if item.get('id') not in existing_ids:
-                                if key not in dest_frame:
-                                    dest_frame[key] = []
-                                dest_frame[key].append(item)
-                
-                # Merge measurements
-                if 'measurements' in frame_data:
-                    if 'measurements' not in dest_frame:
-                        dest_frame['measurements'] = {'distances': [], 'angles': []}
-                    for mtype in ['distances', 'angles']:
-                        if mtype in frame_data['measurements']:
-                            existing_ids = {item.get('id') for item in dest_frame['measurements'].get(mtype, [])}
-                            for item in frame_data['measurements'][mtype]:
+                dest_annotations = {}
+            
+            # Copy annotations to destination
+            if to_study_id not in dest_annotations:
+                dest_annotations[to_study_id] = {}
+            
+            # Merge source into destination (destination takes precedence for conflicts)
+            for frame_idx, frame_data in source_data.items():
+                if frame_idx not in dest_annotations[to_study_id]:
+                    dest_annotations[to_study_id][frame_idx] = frame_data
+                else:
+                    # Merge: combine arrays, prefer destination for conflicts
+                    dest_frame = dest_annotations[to_study_id][frame_idx]
+                    # Merge keypoints, lines, etc. (append if not already present)
+                    for key in ['keypoints', 'lines', 'rois']:
+                        if key in frame_data and isinstance(frame_data[key], list):
+                            existing_ids = {item.get('id') for item in dest_frame.get(key, [])}
+                            for item in frame_data[key]:
                                 if item.get('id') not in existing_ids:
-                                    dest_frame['measurements'][mtype].append(item)
-                
-                # Merge bounding boxes
-                if 'bounding_boxes' in frame_data:
-                    if 'bounding_boxes' not in dest_frame:
-                        dest_frame['bounding_boxes'] = {}
-                    dest_frame['bounding_boxes'].update(frame_data['bounding_boxes'])
-        
-        # Save destination file
-        with to_temp_file.open("w", encoding="utf-8") as f:
-            json.dump(dest_annotations, f, indent=2)
+                                    if key not in dest_frame:
+                                        dest_frame[key] = []
+                                    dest_frame[key].append(item)
+                    
+                    # Merge measurements
+                    if 'measurements' in frame_data:
+                        if 'measurements' not in dest_frame:
+                            dest_frame['measurements'] = {'distances': [], 'angles': []}
+                        for mtype in ['distances', 'angles']:
+                            if mtype in frame_data['measurements']:
+                                existing_ids = {item.get('id') for item in dest_frame['measurements'].get(mtype, [])}
+                                for item in frame_data['measurements'][mtype]:
+                                    if item.get('id') not in existing_ids:
+                                        dest_frame['measurements'][mtype].append(item)
+                    
+                    # Merge bounding boxes
+                    if 'bounding_boxes' in frame_data:
+                        if 'bounding_boxes' not in dest_frame:
+                            dest_frame['bounding_boxes'] = {}
+                        dest_frame['bounding_boxes'].update(frame_data['bounding_boxes'])
+            
+            # Save destination file
+            with to_temp_file.open("w", encoding="utf-8") as f:
+                json.dump(dest_annotations, f, indent=2)
         
         # Also update in-memory storage
-        if from_study_id in _frame_annotations:
-            if to_study_id not in _frame_annotations:
-                _frame_annotations[to_study_id] = {}
-            _frame_annotations[to_study_id].update(_frame_annotations[from_study_id])
+        frame_annotations = _user_frame_annotations(user_key)
+        if from_study_id in frame_annotations:
+            if to_study_id not in frame_annotations:
+                frame_annotations[to_study_id] = {}
+            frame_annotations[to_study_id].update(frame_annotations[from_study_id])
         
         logger.info(f"Migrated annotations from {from_study_id} to {to_study_id}: {len(source_data)} frames")
         return JSONResponse({"status": "success", "frames_migrated": len(source_data)})
@@ -635,6 +941,7 @@ async def migrate_study_annotations(from_study_id: str, to_study_id: str) -> JSO
 
 @app.post("/study/{study_id}/save")
 async def save_annotations(
+    request: Request,
     study_id: str,
     payload: str = Form(...)
 ) -> JSONResponse:
@@ -650,27 +957,73 @@ async def save_annotations(
         logger.error(f"JSON decode error in save_annotations: {e}, payload length: {len(payload)}")
         raise HTTPException(status_code=400, detail=f"Invalid JSON payload: {str(e)}")
     
-    study_dir = STUDY_DIR / study_id
-    study_dir.mkdir(parents=True, exist_ok=True)
+    user_key, study_root, temp_root = _user_dirs(request)
+    study_dir = study_root / study_id
     
     # Get video_id and original filename from payload
     video_id = payload_data.get("video_id")
     original_filename = payload_data.get("original_filename", "")
+    source_study_id = payload_data.get("source_study_id")
+    is_new_upload = bool(payload_data.get("is_new_upload"))
     
+    # Overwrite existing study directory if this is a new upload
+    if is_new_upload and study_dir.exists():
+        shutil.rmtree(study_dir, ignore_errors=True)
+
+    # Overwrite destination for save-as if it already exists
+    if source_study_id and source_study_id != study_id and study_dir.exists():
+        shutil.rmtree(study_dir, ignore_errors=True)
+
+    study_dir.mkdir(parents=True, exist_ok=True)
+
     # Copy original video file to study folder
     if video_id and original_filename:
         # Try to find the video file in temp directory
         video_extension = Path(original_filename).suffix.lower()
-        temp_video_path = TEMP_DIR / f"video_{video_id}{video_extension}"
+        temp_video_path = temp_root / f"video_{video_id}{video_extension}"
+        study_video_path = study_dir / original_filename
         if temp_video_path.exists():
-            study_video_path = study_dir / original_filename
             try:
                 shutil.copy2(temp_video_path, study_video_path)
                 logger.info(f"Copied video file to study folder: {study_video_path}")
             except Exception as e:
                 logger.warning(f"Failed to copy video file to study folder: {e}")
+        elif source_study_id:
+            source_path = study_root / source_study_id / original_filename
+            if source_path.exists():
+                try:
+                    shutil.copy2(source_path, study_video_path)
+                    logger.info(f"Copied video file from source study: {study_video_path}")
+                except Exception as e:
+                    logger.warning(f"Failed to copy source video file: {e}")
+        elif study_video_path.exists():
+            logger.info("Video file already present in study folder; leaving unchanged.")
         else:
             logger.warning(f"Video file not found in temp directory: {temp_video_path}")
+
+    # Copy keypoints tracks file to study folder if present
+    if video_id:
+        temp_keypoints_path = temp_root / f"keypoints_{video_id}.jsonl"
+        study_keypoints_path = study_dir / "keypoints_tracks.jsonl"
+        copied = False
+        if temp_keypoints_path.exists():
+            try:
+                shutil.copy2(temp_keypoints_path, study_keypoints_path)
+                copied = True
+                logger.info(f"Copied keypoints file to study folder: {study_keypoints_path}")
+            except Exception as e:
+                logger.warning(f"Failed to copy keypoints file to study folder: {e}")
+        if not copied and source_study_id:
+            source_keypoints = study_root / source_study_id / "keypoints_tracks.jsonl"
+            if source_keypoints.exists():
+                try:
+                    shutil.copy2(source_keypoints, study_keypoints_path)
+                    copied = True
+                    logger.info(f"Copied keypoints file from source study: {study_keypoints_path}")
+                except Exception as e:
+                    logger.warning(f"Failed to copy source keypoints file: {e}")
+        if not copied and study_keypoints_path.exists():
+            logger.info("Keypoints file already present in study folder; leaving unchanged.")
     
     # Remove keypoints_tracks from payload_data - we don't need to save it
     # It can be loaded from the temp file when needed (for export)
@@ -686,31 +1039,32 @@ async def save_annotations(
     all_frame_annotations = {}
     
     # Load from temp file (this is where annotations are persisted during navigation)
-    temp_annotations_file = TEMP_DIR / f"{study_id}_annotations.json"
+    temp_annotations_file = temp_root / f"{study_id}_annotations.json"
     if temp_annotations_file.exists():
         try:
-            with temp_annotations_file.open("r", encoding="utf-8") as f:
-                temp_annotations = json.load(f)
-                logger.info(f"Loaded temp annotations file: {list(temp_annotations.keys())}")
-                if study_id in temp_annotations:
-                    frame_data = temp_annotations[study_id]
-                    logger.info(f"Found {len(frame_data)} frames in temp file for study {study_id}, keys: {list(frame_data.keys())[:10]}")
-                    # Convert string keys to int keys
-                    for key, value in frame_data.items():
-                        frame_idx = int(key) if isinstance(key, str) and key.isdigit() else key
-                        all_frame_annotations[frame_idx] = value
-                        # Log first frame's structure and content
-                        if len(all_frame_annotations) == 1:
-                            logger.info(f"Sample frame {frame_idx} annotations keys: {list(value.keys())}")
-                            # Log actual content counts
-                            kp_count = len(value.get('keypoints', []))
-                            lines_count = len(value.get('lines', []))
-                            rois_count = len(value.get('rois', []))
-                            dist_count = len(value.get('measurements', {}).get('distances', []))
-                            ang_count = len(value.get('measurements', {}).get('angles', []))
-                            logger.info(f"Sample frame {frame_idx} content: keypoints={kp_count}, lines={lines_count}, rois={rois_count}, distances={dist_count}, angles={ang_count}")
-                else:
-                    logger.warning(f"Study {study_id} not found in temp annotations file. Available studies: {list(temp_annotations.keys())}")
+            with _temp_lock(user_key, study_id):
+                with temp_annotations_file.open("r", encoding="utf-8") as f:
+                    temp_annotations = json.load(f)
+                    logger.info(f"Loaded temp annotations file: {list(temp_annotations.keys())}")
+                    if study_id in temp_annotations:
+                        frame_data = temp_annotations[study_id]
+                        logger.info(f"Found {len(frame_data)} frames in temp file for study {study_id}, keys: {list(frame_data.keys())[:10]}")
+                        # Convert string keys to int keys
+                        for key, value in frame_data.items():
+                            frame_idx = int(key) if isinstance(key, str) and key.isdigit() else key
+                            all_frame_annotations[frame_idx] = value
+                            # Log first frame's structure and content
+                            if len(all_frame_annotations) == 1:
+                                logger.info(f"Sample frame {frame_idx} annotations keys: {list(value.keys())}")
+                                # Log actual content counts
+                                kp_count = len(value.get('keypoints', []))
+                                lines_count = len(value.get('lines', []))
+                                rois_count = len(value.get('rois', []))
+                                dist_count = len(value.get('measurements', {}).get('distances', []))
+                                ang_count = len(value.get('measurements', {}).get('angles', []))
+                                logger.info(f"Sample frame {frame_idx} content: keypoints={kp_count}, lines={lines_count}, rois={rois_count}, distances={dist_count}, angles={ang_count}")
+                    else:
+                        logger.warning(f"Study {study_id} not found in temp annotations file. Available studies: {list(temp_annotations.keys())}")
         except Exception as e:
             logger.warning(f"Error loading temp annotations file: {e}")
             import traceback
@@ -719,9 +1073,9 @@ async def save_annotations(
         logger.info(f"Temp annotations file not found: {temp_annotations_file}")
     
     # Merge in-memory annotations (in case temp file is out of sync)
-    if study_id in _frame_annotations:
-        logger.info(f"Found {len(_frame_annotations[study_id])} frames in memory for study {study_id}")
-        for frame_idx, annotations in _frame_annotations[study_id].items():
+    if study_id in frame_annotations:
+        logger.info(f"Found {len(frame_annotations[study_id])} frames in memory for study {study_id}")
+        for frame_idx, annotations in frame_annotations[study_id].items():
             # Only merge if frame not already in all_frame_annotations, or if memory has more recent data
             if frame_idx not in all_frame_annotations:
                 all_frame_annotations[frame_idx] = annotations
@@ -754,7 +1108,7 @@ async def save_annotations(
     if not video_id:
         raise HTTPException(status_code=400, detail="video_id is required to save annotations")
     
-    keypoints_path = TEMP_DIR / f"keypoints_{video_id}.jsonl"
+    keypoints_path = temp_root / f"keypoints_{video_id}.jsonl"
     annotations_path = study_dir / f"{study_id}_annotations.jsonl"
     
     # Helper function to serialize annotation objects with full data for reconstruction
@@ -1010,9 +1364,9 @@ def save_study(study_id: str, data: Dict[str, Any]) -> None:
     pass
 
 
-def load_study(study_id: str) -> Optional[Dict[str, Any]]:
+def load_study(study_root: Path, study_id: str) -> Optional[Dict[str, Any]]:
     """Load study metadata from disk."""
-    study_dir = STUDY_DIR / study_id
+    study_dir = study_root / study_id
     
     # Load metadata file (contains video_id)
     metadata_path = study_dir / f"{study_id}_metadata.json"
@@ -1051,15 +1405,15 @@ def parse_coords(coords_str: str) -> List[Dict[str, float]]:
     return points
 
 
-def load_study_annotations_to_temp(study_id: str) -> bool:
+def load_study_annotations_to_temp(user_key: str, study_root: Path, temp_root: Path, study_id: str) -> bool:
     """
     Load annotations from saved JSONL file and write to temp JSON format.
     Converts from saved format (Keypoints, coords string) to temp format (keypoints, x/y fields).
     Returns True if successful, False otherwise.
     """
-    study_dir = STUDY_DIR / study_id
+    study_dir = study_root / study_id
     annotations_path = study_dir / f"{study_id}_annotations.jsonl"
-    temp_annotations_file = TEMP_DIR / f"{study_id}_annotations.json"
+    temp_annotations_file = temp_root / f"{study_id}_annotations.json"
     
     if not annotations_path.exists():
         logger.warning(f"Annotations file not found: {annotations_path}")
@@ -1273,14 +1627,16 @@ def load_study_annotations_to_temp(study_id: str) -> bool:
         for frame_idx, frame_ann in all_frame_annotations.items():
             temp_annotations[study_id][str(frame_idx)] = frame_ann
         
-        with temp_annotations_file.open("w", encoding="utf-8") as f:
-            json.dump(temp_annotations, f, indent=2)
+        with _temp_lock(user_key, study_id):
+            with temp_annotations_file.open("w", encoding="utf-8") as f:
+                json.dump(temp_annotations, f, indent=2)
         
         # Also load into memory
-        if study_id not in _frame_annotations:
-            _frame_annotations[study_id] = {}
+        frame_annotations = _user_frame_annotations(user_key)
+        if study_id not in frame_annotations:
+            frame_annotations[study_id] = {}
         for frame_idx, frame_ann in all_frame_annotations.items():
-            _frame_annotations[study_id][frame_idx] = frame_ann
+            frame_annotations[study_id][frame_idx] = frame_ann
         
         logger.info(f"Loaded {len(all_frame_annotations)} frames with annotations from {annotations_path}")
         return True
@@ -1292,12 +1648,12 @@ def load_study_annotations_to_temp(study_id: str) -> bool:
         return False
 
 
-def list_studies() -> List[str]:
+def list_studies(study_root: Path) -> List[str]:
     """List all saved study IDs."""
-    if not STUDY_DIR.exists():
+    if not study_root.exists():
         return []
     studies = []
-    for d in STUDY_DIR.iterdir():
+    for d in study_root.iterdir():
         if d.is_dir():
             # Check for JSONL (new format) or JSON (old format)
             if (d / f"{d.name}_annotations.jsonl").exists() or (d / f"{d.name}_annotations.json").exists():
@@ -1306,7 +1662,7 @@ def list_studies() -> List[str]:
 
 
 @app.get("/study/{study_id}")
-async def get_study(study_id: str) -> JSONResponse:
+async def get_study(request: Request, study_id: str) -> JSONResponse:
     """
     Load a saved study for viewing.
     This endpoint:
@@ -1316,13 +1672,15 @@ async def get_study(study_id: str) -> JSONResponse:
     4. Parses JSONL annotations and writes to temp format
     5. Returns all necessary data for the frontend
     """
-    study_dir = STUDY_DIR / study_id
+    user_key, study_root, temp_root = _user_dirs(request)
+    _clear_user_temp(user_key, temp_root)
+    study_dir = study_root / study_id
     
     if not study_dir.exists():
         raise HTTPException(status_code=404, detail="Study not found")
     
     # Load metadata
-    metadata = load_study(study_id)
+    metadata = load_study(study_root, study_id)
     if not metadata:
         metadata = {}
     
@@ -1355,7 +1713,7 @@ async def get_study(study_id: str) -> JSONResponse:
     # Generate new video_id and copy to temp
     video_id = uuid.uuid4().hex
     video_extension = video_path.suffix.lower()
-    temp_video_path = TEMP_DIR / f"video_{video_id}{video_extension}"
+    temp_video_path = temp_root / f"video_{video_id}{video_extension}"
     
     try:
         shutil.copy2(video_path, temp_video_path)
@@ -1386,23 +1744,27 @@ async def get_study(study_id: str) -> JSONResponse:
     has_keypoints = False
     
     # Look for keypoints file in study folder (might be named differently)
-    for f in study_dir.iterdir():
-        if f.suffix.lower() == ".jsonl" and "keypoints" in f.name.lower():
-            keypoints_path = TEMP_DIR / f"keypoints_{video_id}.jsonl"
-            try:
-                shutil.copy2(f, keypoints_path)
-                keypoints_tracks = load_keypoints_tracks(keypoints_path)
-                has_keypoints = len(keypoints_tracks) > 0
-                logger.info(f"Copied keypoints file to temp: {keypoints_path}")
-            except Exception as e:
-                logger.warning(f"Failed to copy keypoints file: {e}")
-            break
+    keypoints_source = study_dir / "keypoints_tracks.jsonl"
+    if not keypoints_source.exists():
+        for f in study_dir.iterdir():
+            if f.suffix.lower() == ".jsonl" and "keypoints" in f.name.lower():
+                keypoints_source = f
+                break
+    if keypoints_source.exists():
+        keypoints_path = temp_root / f"keypoints_{video_id}.jsonl"
+        try:
+            shutil.copy2(keypoints_source, keypoints_path)
+            keypoints_tracks = load_keypoints_tracks(keypoints_path)
+            has_keypoints = len(keypoints_tracks) > 0
+            logger.info(f"Copied keypoints file to temp: {keypoints_path}")
+        except Exception as e:
+            logger.warning(f"Failed to copy keypoints file: {e}")
     
     # Load annotations from JSONL to temp
-    load_study_annotations_to_temp(study_id)
+    load_study_annotations_to_temp(user_key, study_root, temp_root, study_id)
     
     # Store in temp_studies for propagation support
-    _temp_studies[video_id] = {
+    _user_temp_studies(user_key)[video_id] = {
         "video_id": video_id,
         "frames": frames,
         "keypoints_tracks": keypoints_tracks,
@@ -1433,17 +1795,19 @@ async def get_study(study_id: str) -> JSONResponse:
 
 
 @app.get("/studies")
-async def get_study_list() -> JSONResponse:
-    return JSONResponse({"studies": list_studies()})
+async def get_study_list(request: Request) -> JSONResponse:
+    _, study_root, _ = _user_dirs(request)
+    return JSONResponse({"studies": list_studies(study_root)})
 
 
 @app.get("/study/{study_id}/export")
-async def export_study_jsonl(study_id: str) -> FileResponse:
+async def export_study_jsonl(request: Request, study_id: str) -> FileResponse:
     """
     Export study annotations - just returns the saved annotations.jsonl file.
     The saved file is already in the correct format (JSONL with name/action added).
     """
-    study_dir = STUDY_DIR / study_id
+    _, study_root, _ = _user_dirs(request)
+    study_dir = study_root / study_id
     annotations_path = study_dir / f"{study_id}_annotations.jsonl"
     
     if not annotations_path.exists():
@@ -1458,6 +1822,7 @@ async def export_study_jsonl(study_id: str) -> FileResponse:
 
 @app.post("/study/{study_id}/propagate_labels")
 async def propagate_labels(
+    request: Request,
     study_id: str,
     payload: Dict[str, Any] = Body(...)
 ) -> JSONResponse:
@@ -1475,12 +1840,15 @@ async def propagate_labels(
     if track_id is None or frame_index is None:
         raise HTTPException(status_code=400, detail="track_id and frame_index are required")
     
+    user_key, study_root, temp_root = _user_dirs(request)
+    frame_annotations = _user_frame_annotations(user_key)
+
     # Try to load study from disk first
-    study_data = load_study(study_id)
+    study_data = load_study(study_root, study_id)
     
     # If study not found and video_id provided, try to use temp study data
     if not study_data and video_id:
-        temp_data = _temp_studies.get(video_id)
+        temp_data = _user_temp_studies(user_key).get(video_id)
         if temp_data:
             study_data = temp_data
             logger.info(f"Using temp study data for video_id {video_id}")
@@ -1493,6 +1861,7 @@ async def propagate_labels(
     
     # Propagate labels forward only (from frame_index onwards)
     updated_frames = []
+    pending_updates: Dict[int, Dict[str, Any]] = {}
     
     for frame_idx in range(frame_index, total_frames):
         # Check if this frame has the track_id
@@ -1501,15 +1870,15 @@ async def propagate_labels(
         
         if has_track:
             # Get or create annotations for this frame
-            if study_id not in _frame_annotations:
-                _frame_annotations[study_id] = {}
-            if frame_idx not in _frame_annotations[study_id]:
-                _frame_annotations[study_id][frame_idx] = {"bounding_boxes": {}}
+            if study_id not in frame_annotations:
+                frame_annotations[study_id] = {}
+            if frame_idx not in frame_annotations[study_id]:
+                frame_annotations[study_id][frame_idx] = {"bounding_boxes": {}}
             
-            if "bounding_boxes" not in _frame_annotations[study_id][frame_idx]:
-                _frame_annotations[study_id][frame_idx]["bounding_boxes"] = {}
+            if "bounding_boxes" not in frame_annotations[study_id][frame_idx]:
+                frame_annotations[study_id][frame_idx]["bounding_boxes"] = {}
             
-            bbox_data = _frame_annotations[study_id][frame_idx]["bounding_boxes"].get(track_id, {})
+            bbox_data = frame_annotations[study_id][frame_idx]["bounding_boxes"].get(track_id, {})
             
             # Always update labels for the current frame and all forward frames
             # This allows new labels to overwrite previous labels in forward frames
@@ -1526,21 +1895,23 @@ async def propagate_labels(
                 # Only clear action if explicitly provided as empty on the current frame
                 bbox_data.pop("action", None)
             
-            _frame_annotations[study_id][frame_idx]["bounding_boxes"][track_id] = bbox_data
+            frame_annotations[study_id][frame_idx]["bounding_boxes"][track_id] = bbox_data
             updated_frames.append(frame_idx)
             
-            # Also save to server immediately
+            # Collect updates for temp file write
             annotations = {
-                "keypoints": _frame_annotations[study_id][frame_idx].get("keypoints", []),
-                "lines": _frame_annotations[study_id][frame_idx].get("lines", []),
-                "rois": _frame_annotations[study_id][frame_idx].get("rois", []),
-                "measurements": _frame_annotations[study_id][frame_idx].get("measurements", {"distances": [], "angles": []}),
-                "bounding_boxes": _frame_annotations[study_id][frame_idx]["bounding_boxes"],
+                "keypoints": frame_annotations[study_id][frame_idx].get("keypoints", []),
+                "lines": frame_annotations[study_id][frame_idx].get("lines", []),
+                "rois": frame_annotations[study_id][frame_idx].get("rois", []),
+                "measurements": frame_annotations[study_id][frame_idx].get("measurements", {"distances": [], "angles": []}),
+                "bounding_boxes": frame_annotations[study_id][frame_idx]["bounding_boxes"],
             }
-            
-            # Save this frame's annotations
-            temp_annotations_file = TEMP_DIR / f"{study_id}_annotations.json"
-            try:
+            pending_updates[frame_idx] = annotations
+
+    if pending_updates:
+        temp_annotations_file = temp_root / f"{study_id}_annotations.json"
+        try:
+            with _temp_lock(user_key, study_id):
                 all_annotations = {}
                 if temp_annotations_file.exists():
                     with temp_annotations_file.open("r", encoding="utf-8") as f:
@@ -1548,62 +1919,19 @@ async def propagate_labels(
                 
                 if study_id not in all_annotations:
                     all_annotations[study_id] = {}
-                all_annotations[study_id][str(frame_idx)] = annotations
+                for frame_idx, annotations in pending_updates.items():
+                    all_annotations[study_id][str(frame_idx)] = annotations
                 
                 with temp_annotations_file.open("w", encoding="utf-8") as f:
                     json.dump(all_annotations, f, indent=2)
-            except Exception as e:
-                logger.warning(f"Failed to save temp annotations file: {e}")
+        except Exception as e:
+            logger.warning(f"Failed to save temp annotations file: {e}")
     
     return JSONResponse({
         "status": "propagated",
         "updated_frames": updated_frames,
         "count": len(updated_frames)
     })
-
-@app.post("/reset_session")
-async def reset_session(clear_temp: bool = True):
-    """
-    Clears all in-memory annotations and optionally temp files to ensure a fresh state.
-    
-    Args:
-        clear_temp: If True, also clears temp folder files (default: True)
-    """
-    global _frame_annotations, _temp_studies
-    
-    # Clear in-memory annotations
-    _frame_annotations.clear()
-    _temp_studies.clear()
-    
-    # Clear video cache
-    with _video_cache_lock:
-        for video_id, cache_entry in _video_cache.items():
-            try:
-                cache_entry["capture"].release()
-            except Exception:
-                pass
-        _video_cache.clear()
-    
-    files_cleared = 0
-    
-    # Clear temp folder files if requested
-    if clear_temp and TEMP_DIR.exists():
-        try:
-            for item in TEMP_DIR.iterdir():
-                try:
-                    if item.is_file():
-                        item.unlink()
-                        files_cleared += 1
-                    elif item.is_dir():
-                        shutil.rmtree(item)
-                        files_cleared += 1
-                except Exception as e:
-                    logger.warning(f"Failed to delete temp item {item}: {e}")
-            logger.info(f"Cleared temp directory: {files_cleared} items deleted")
-        except Exception as e:
-            logger.warning(f"Error clearing temp directory: {e}")
-    
-    return JSONResponse({"status": "session_cleared", "files_cleared": files_cleared})
 
 if __name__ == "__main__":
     import uvicorn

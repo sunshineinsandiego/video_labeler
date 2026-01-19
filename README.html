@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Video Annotate Help</title>
+    <style>
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        margin: 0;
+        background: #f6f7fb;
+        color: #1d1d1f;
+      }
+      header {
+        background: #ffffff;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 24px 32px;
+      }
+      header h1 {
+        margin: 0 0 8px 0;
+        font-size: 26px;
+      }
+      header p {
+        margin: 0;
+        color: #4b5563;
+      }
+      main {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 24px 32px 48px 32px;
+      }
+      section {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 16px;
+      }
+      h2 {
+        margin: 0 0 12px 0;
+        font-size: 20px;
+      }
+      h3 {
+        margin: 16px 0 8px 0;
+        font-size: 16px;
+      }
+      ul, ol {
+        margin: 8px 0 0 20px;
+      }
+      .callout {
+        background: #f0f9ff;
+        border: 1px solid #bae6fd;
+        color: #075985;
+        padding: 12px;
+        border-radius: 6px;
+        margin-top: 12px;
+      }
+      .placeholder {
+        border: 2px dashed #cbd5f5;
+        border-radius: 8px;
+        padding: 16px;
+        text-align: center;
+        color: #64748b;
+        background: #f8fafc;
+        margin-top: 12px;
+      }
+      .key {
+        display: inline-block;
+        padding: 2px 6px;
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        background: #f9fafb;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Video Annotate — Video Labeler</h1>
+      <p>How to upload videos, label tracks, and save or overwrite studies.</p>
+    </header>
+    <main>
+      <section>
+        <h2>Quick Start</h2>
+        <ol>
+          <li>Log in with your email and password.</li>
+          <li>Select a video file (and optional keypoints_tracks.jsonl).</li>
+          <li>Click <strong>Upload</strong> and wait for the video to load.</li>
+          <li>Navigate frames and add labels/annotations.</li>
+          <li>Enter a Study ID and click <strong>Save study</strong>.</li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>Upload and Navigate</h2>
+        <ul>
+          <li><strong>Select Video</strong> uploads a video file.</li>
+          <li><strong>Select Keypoints Tracks (optional)</strong> loads tracked keypoints and bounding boxes.</li>
+          <li>Use the arrows above the canvas to move frames.</li>
+          <li>Click the frame number to jump to a specific frame.</li>
+          <li>Keyboard: <span class="key">Left</span> and <span class="key">Right</span> arrows move frames.</li>
+        </ul>
+        <div class="placeholder">Screenshot placeholder: Upload controls + frame navigation</div>
+      </section>
+
+      <section>
+        <h2>Track Labels (Name / Action)</h2>
+        <ol>
+          <li>Click a bounding box to select it.</li>
+          <li>Enter <strong>Player Name</strong> and/or <strong>Action</strong>.</li>
+          <li>Click <strong>Apply Labels</strong>.</li>
+        </ol>
+        <p>Labels are propagated forward across frames for the same track ID.</p>
+      </section>
+
+      <section>
+        <h2>Manual Annotation Tools</h2>
+        <h3>Keypoint</h3>
+        <ul>
+          <li>Click <strong>Create keypoint</strong>, then click on the image.</li>
+        </ul>
+        <h3>Line</h3>
+        <ul>
+          <li>Click <strong>Create line</strong>, then click two points.</li>
+        </ul>
+        <h3>Distance</h3>
+        <ul>
+          <li>Click <strong>Create distance</strong>, then click two points.</li>
+        </ul>
+        <h3>Angle</h3>
+        <ul>
+          <li>Click <strong>Create angle</strong>, then click three points.</li>
+        </ul>
+        <h3>ROI</h3>
+        <ul>
+          <li>Click <strong>Create ROI</strong>, then click at least three points.</li>
+          <li>Press <span class="key">Enter</span> to finish the ROI.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Saving, Loading, and Overwriting</h2>
+        <ul>
+          <li><strong>Save new study:</strong> enter a new Study ID and click <strong>Save study</strong>.</li>
+          <li><strong>Overwrite with new upload:</strong> if you upload a new video and save with an existing ID, the old study is replaced.</li>
+          <li><strong>Update existing study:</strong> if you load a study and save with the same ID, only the JSONL annotations are updated.</li>
+          <li><strong>Save As:</strong> load a study, enter a new ID, then save. The video and keypoints file are copied to the new study.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Where Your Data Lives</h2>
+        <ul>
+          <li>Your studies are private to your login.</li>
+          <li>The study folder contains the video, the keypoints tracks file, and the JSONL annotations.</li>
+          <li>No per-frame PNGs are generated for video.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>FAQ</h2>
+        <h3>Will my annotations stay when I switch frames?</h3>
+        <p>Yes. Each frame keeps its own manual annotations.</p>
+        <h3>What if I close the browser before saving?</h3>
+        <p>Unsaved work may be lost. Save regularly, especially after long edits.</p>
+        <div class="callout">Tip: Large videos can take a while to upload. Keep the tab open until upload completes.</div>
+      </section>
+    </main>
+  </body>
+</html>
