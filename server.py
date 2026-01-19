@@ -341,7 +341,7 @@ async def login_action(
 
 @app.get("/README.html")
 async def help_page() -> FileResponse:
-    return FileResponse(BASE_DIR / "README.html")
+    return FileResponse(STATIC_DIR / "README.html")
 
 @app.get("/")
 async def index() -> FileResponse:
