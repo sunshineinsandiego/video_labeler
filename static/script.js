@@ -2593,6 +2593,7 @@ async function saveCurrentFrameAnnotations() {
   
   const annotations = {
     frame: frameIndexToSave,
+    video_id: state.videoId || null,
     keypoints: state.keypoints || [],
     lines: state.lines || [],
     rois: state.rois || [],

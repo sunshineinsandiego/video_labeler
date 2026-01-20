@@ -509,7 +509,7 @@ async def upload_file(
     if not video_file.filename:
         raise HTTPException(status_code=400, detail="Video filename is required.")
     
-    user_key, _, temp_root = _user_dirs(request)
+    user_key, study_root, temp_root = _user_dirs(request)
     _clear_user_temp(user_key, temp_root)
 
     # Save video file
@@ -781,6 +781,7 @@ async def save_frame_annotations(
 
     # Normalize payload for easier inspection/debugging.
     payload["frame"] = frame_index
+    video_id = payload.get("video_id")
     bounding_boxes = payload.get("bounding_boxes")
     if isinstance(bounding_boxes, dict):
         for track_id_key, bbox_ann in bounding_boxes.items():
@@ -792,6 +793,23 @@ async def save_frame_annotations(
                 track_id = track_id_key
             bbox_ann.setdefault("track_id", track_id)
             bbox_ann.setdefault("det_id", None)
+
+        if video_id:
+            study_data = _study_data_for_propagation(user_key, study_root, temp_root, study_id, video_id)
+            keypoints_tracks = study_data.get("keypoints_tracks", {}) if study_data else {}
+            if keypoints_tracks:
+                for track_id_key, bbox_ann in bounding_boxes.items():
+                    if not isinstance(bbox_ann, dict):
+                        continue
+                    if bbox_ann.get("det_id") is None:
+                        match = _find_track_for_frame(
+                            keypoints_tracks,
+                            frame_index,
+                            bbox_ann.get("track_id", track_id_key),
+                        )
+                        if match:
+                            bbox_ann["track_id"] = match.get("track_id", bbox_ann.get("track_id"))
+                            bbox_ann["det_id"] = match.get("det_id")
     
     frame_annotations[study_id][frame_index] = payload
     
@@ -1487,6 +1505,21 @@ def _study_data_for_propagation(
     }
 
 
+def _find_track_for_frame(
+    keypoints_tracks: Dict[int, List[Dict[str, Any]]],
+    frame_index: int,
+    track_id: Any,
+) -> Optional[Dict[str, Any]]:
+    if not keypoints_tracks or track_id is None:
+        return None
+    frame_tracks = keypoints_tracks.get(frame_index) or keypoints_tracks.get(str(frame_index)) or []
+    for track in frame_tracks:
+        track_key = track.get("track_id")
+        if track_key is not None and str(track_key) == str(track_id):
+            return track
+    return None
+
+
 def parse_coords(coords_str: str) -> List[Dict[str, float]]:
     """Parse coordinate string like 'x1,y1;x2,y2;...' into list of {x, y} dicts."""
     points = []
@@ -1961,10 +1994,11 @@ async def propagate_labels(
     
     for frame_idx in range(frame_index, total_frames):
         # Check if this frame has the track_id
-        frame_tracks = keypoints_tracks.get(frame_idx, [])
+        frame_tracks = keypoints_tracks.get(frame_idx) or keypoints_tracks.get(str(frame_idx)) or []
         has_track = any(track.get("track_id") == track_id for track in frame_tracks)
         
         if has_track:
+            matched_track = _find_track_for_frame(keypoints_tracks, frame_idx, track_id)
             # Get or create annotations for this frame
             if study_id not in frame_annotations:
                 frame_annotations[study_id] = {}
@@ -1975,6 +2009,9 @@ async def propagate_labels(
                 frame_annotations[study_id][frame_idx]["bounding_boxes"] = {}
             
             bbox_data = frame_annotations[study_id][frame_idx]["bounding_boxes"].get(track_id, {})
+            bbox_data.setdefault("track_id", track_id)
+            if bbox_data.get("det_id") is None and matched_track:
+                bbox_data["det_id"] = matched_track.get("det_id")
             
             # Always update labels for the current frame and all forward frames
             # This allows new labels to overwrite previous labels in forward frames
@@ -1992,16 +2029,22 @@ async def propagate_labels(
                 bbox_data.pop("action", None)
             
             frame_annotations[study_id][frame_idx]["bounding_boxes"][track_id] = bbox_data
+            frame_annotations[study_id][frame_idx]["frame"] = frame_idx
+            if video_id:
+                frame_annotations[study_id][frame_idx]["video_id"] = video_id
             updated_frames.append(frame_idx)
             
             # Collect updates for temp file write
             annotations = {
+                "frame": frame_idx,
                 "keypoints": frame_annotations[study_id][frame_idx].get("keypoints", []),
                 "lines": frame_annotations[study_id][frame_idx].get("lines", []),
                 "rois": frame_annotations[study_id][frame_idx].get("rois", []),
                 "measurements": frame_annotations[study_id][frame_idx].get("measurements", {"distances": [], "angles": []}),
                 "bounding_boxes": frame_annotations[study_id][frame_idx]["bounding_boxes"],
             }
+            if video_id:
+                annotations["video_id"] = video_id
             pending_updates[frame_idx] = annotations
 
     if pending_updates:
