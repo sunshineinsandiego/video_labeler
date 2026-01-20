@@ -1,0 +1,5450 @@
+{
+  "test": {
+    "0": {
+      "frame": 0,
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "1": {
+          "track_id": 1,
+          "det_id": 0,
+          "name": "lebron",
+          "action": "running",
+          "annotations": null
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 9,
+          "name": "opp",
+          "action": "defending",
+          "annotations": null
+        }
+      }
+    },
+    "1": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "1": {
+          "track_id": 1,
+          "det_id": 75,
+          "name": "lebron",
+          "action": "running"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 84,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "2": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "1": {
+          "track_id": 1,
+          "det_id": 152,
+          "name": "lebron",
+          "action": "running"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 156,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "3": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "1": {
+          "track_id": 1,
+          "det_id": 230,
+          "name": "lebron",
+          "action": "running"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 239,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "4": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "1": {
+          "track_id": 1,
+          "det_id": 308,
+          "name": "lebron",
+          "action": "running"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 314,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "5": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "1": {
+          "track_id": 1,
+          "det_id": 384,
+          "name": "lebron",
+          "action": "running"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 388,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "6": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "1": {
+          "track_id": 1,
+          "det_id": 460,
+          "name": "lebron",
+          "action": "running"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 462,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "7": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "1": {
+          "track_id": 1,
+          "det_id": 539,
+          "name": "lebron",
+          "action": "running"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 541,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "8": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "1": {
+          "track_id": 1,
+          "det_id": 615,
+          "name": "lebron",
+          "action": "running"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 618,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "9": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "1": {
+          "track_id": 1,
+          "det_id": 695,
+          "name": "lebron",
+          "action": "running"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 697,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "10": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "1": {
+          "track_id": 1,
+          "det_id": 775,
+          "name": "lebron",
+          "action": "running"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 776,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "11": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "1": {
+          "track_id": 1,
+          "det_id": 857,
+          "name": "lebron",
+          "action": "running"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 859,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "12": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "1": {
+          "track_id": 1,
+          "det_id": 940,
+          "name": "lebron",
+          "action": "running"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 942,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "13": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "1": {
+          "track_id": 1,
+          "det_id": 1018,
+          "name": "lebron",
+          "action": "running"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 1021,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "14": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "1": {
+          "track_id": 1,
+          "det_id": 1097,
+          "name": "lebron",
+          "action": "running"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 1099,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "15": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "1": {
+          "track_id": 1,
+          "det_id": 1177,
+          "name": "lebron",
+          "action": "running"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 1179,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "16": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "1": {
+          "track_id": 1,
+          "det_id": 1256,
+          "name": "lebron",
+          "action": "running"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 1258,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "17": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "1": {
+          "track_id": 1,
+          "det_id": 1335,
+          "name": "lebron",
+          "action": "running"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 1337,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "18": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 1413,
+          "name": "opp",
+          "action": "defending"
+        },
+        "1": {
+          "track_id": 1,
+          "det_id": 1414,
+          "name": "lebron",
+          "action": "running"
+        }
+      }
+    },
+    "19": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 1488,
+          "name": "opp",
+          "action": "defending"
+        },
+        "1": {
+          "track_id": 1,
+          "det_id": 1489,
+          "name": "lebron",
+          "action": "running"
+        }
+      }
+    },
+    "20": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 1561,
+          "name": "opp",
+          "action": "defending"
+        },
+        "1": {
+          "track_id": 1,
+          "det_id": 1563,
+          "name": "lebron",
+          "action": "running"
+        }
+      }
+    },
+    "21": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 1637,
+          "name": "opp",
+          "action": "defending"
+        },
+        "1": {
+          "track_id": 1,
+          "det_id": 1641,
+          "name": "lebron",
+          "action": "running"
+        }
+      }
+    },
+    "22": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "1": {
+          "track_id": 1,
+          "det_id": 1714,
+          "name": "lebron",
+          "action": "running"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 1718,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "23": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "1": {
+          "track_id": 1,
+          "det_id": 1786,
+          "name": "lebron",
+          "action": "running"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 1791,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "24": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "1": {
+          "track_id": 1,
+          "det_id": 1868,
+          "name": "lebron",
+          "action": "running"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 1873,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "25": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "1": {
+          "track_id": 1,
+          "det_id": 1943,
+          "name": "lebron",
+          "action": "running"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 1950,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "26": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "1": {
+          "track_id": 1,
+          "det_id": 2019,
+          "name": "lebron",
+          "action": "running"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 2022,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "27": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 2094,
+          "name": "opp",
+          "action": "defending"
+        },
+        "1": {
+          "track_id": 1,
+          "det_id": 2097,
+          "name": "lebron",
+          "action": "running"
+        }
+      }
+    },
+    "28": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 2170,
+          "name": "opp",
+          "action": "defending"
+        },
+        "1": {
+          "track_id": 1,
+          "det_id": 2171,
+          "name": "lebron",
+          "action": "running"
+        }
+      }
+    },
+    "29": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 2245,
+          "name": "opp",
+          "action": "defending"
+        },
+        "1": {
+          "track_id": 1,
+          "det_id": 2246,
+          "name": "lebron",
+          "action": "running"
+        }
+      }
+    },
+    "30": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 2322,
+          "name": "opp",
+          "action": "defending"
+        },
+        "1": {
+          "track_id": 1,
+          "det_id": 2324,
+          "name": "lebron",
+          "action": "running"
+        }
+      }
+    },
+    "31": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 2399,
+          "name": "opp",
+          "action": "defending"
+        },
+        "1": {
+          "track_id": 1,
+          "det_id": 2406,
+          "name": "lebron",
+          "action": "running"
+        }
+      }
+    },
+    "32": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 2478,
+          "name": "opp",
+          "action": "defending"
+        },
+        "1": {
+          "track_id": 1,
+          "det_id": 2483,
+          "name": "lebron",
+          "action": "running"
+        }
+      }
+    },
+    "33": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 2551,
+          "name": "opp",
+          "action": "defending"
+        },
+        "1": {
+          "track_id": 1,
+          "det_id": 2560,
+          "name": "lebron",
+          "action": "running"
+        }
+      }
+    },
+    "34": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 2626,
+          "name": "opp",
+          "action": "defending"
+        },
+        "1": {
+          "track_id": 1,
+          "det_id": 2635,
+          "name": "lebron",
+          "action": "running"
+        }
+      }
+    },
+    "35": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 2703,
+          "name": "opp",
+          "action": "defending"
+        },
+        "1": {
+          "track_id": 1,
+          "det_id": 2712,
+          "name": "lebron",
+          "action": "running"
+        }
+      }
+    },
+    "36": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 2778,
+          "name": "opp",
+          "action": "defending"
+        },
+        "1": {
+          "track_id": 1,
+          "det_id": 2785,
+          "name": "lebron",
+          "action": "running"
+        }
+      }
+    },
+    "37": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 2854,
+          "name": "opp",
+          "action": "defending"
+        },
+        "1": {
+          "track_id": 1,
+          "det_id": 2863,
+          "name": "lebron",
+          "action": "running"
+        }
+      }
+    },
+    "38": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 2931,
+          "name": "opp",
+          "action": "defending"
+        },
+        "1": {
+          "track_id": 1,
+          "det_id": 2935,
+          "name": "lebron",
+          "action": "running"
+        }
+      }
+    },
+    "39": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 3008,
+          "name": "opp",
+          "action": "defending"
+        },
+        "1": {
+          "track_id": 1,
+          "det_id": 3014,
+          "name": "lebron",
+          "action": "running"
+        }
+      }
+    },
+    "40": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 3083,
+          "name": "opp",
+          "action": "defending"
+        },
+        "1": {
+          "track_id": 1,
+          "det_id": 3092,
+          "name": "lebron",
+          "action": "running"
+        }
+      }
+    },
+    "41": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 3157,
+          "name": "opp",
+          "action": "defending"
+        },
+        "1": {
+          "track_id": 1,
+          "det_id": 3166,
+          "name": "lebron",
+          "action": "running"
+        }
+      }
+    },
+    "42": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 3235,
+          "name": "opp",
+          "action": "defending"
+        },
+        "1": {
+          "track_id": 1,
+          "det_id": 3241,
+          "name": "lebron",
+          "action": "running"
+        }
+      }
+    },
+    "43": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 3310,
+          "name": "opp",
+          "action": "defending"
+        },
+        "1": {
+          "track_id": 1,
+          "det_id": 3317,
+          "name": "lebron",
+          "action": "running"
+        }
+      }
+    },
+    "44": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 3387,
+          "name": "opp",
+          "action": "defending"
+        },
+        "1": {
+          "track_id": 1,
+          "det_id": 3392,
+          "name": "lebron",
+          "action": "running"
+        }
+      }
+    },
+    "45": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 3465,
+          "name": "opp",
+          "action": "defending"
+        },
+        "1": {
+          "track_id": 1,
+          "det_id": 3466,
+          "name": "lebron",
+          "action": "running"
+        }
+      }
+    },
+    "46": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 3545,
+          "name": "opp",
+          "action": "defending"
+        },
+        "1": {
+          "track_id": 1,
+          "det_id": 3552,
+          "name": "lebron",
+          "action": "running"
+        }
+      }
+    },
+    "47": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 3624,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "48": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 3699,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "49": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 3775,
+          "name": "opp",
+          "action": "defending"
+        },
+        "1": {
+          "track_id": 1,
+          "det_id": 3837,
+          "name": "lebron",
+          "action": "running"
+        }
+      }
+    },
+    "50": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 3851,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "51": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 3925,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "52": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 4002,
+          "name": "opp",
+          "action": "defending"
+        },
+        "1": {
+          "track_id": 1,
+          "det_id": 4070,
+          "name": "lebron",
+          "action": "running"
+        }
+      }
+    },
+    "53": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 4079,
+          "name": "opp",
+          "action": "defending"
+        },
+        "1": {
+          "track_id": 1,
+          "det_id": 4107,
+          "name": "lebron",
+          "action": "running"
+        }
+      }
+    },
+    "54": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 4157,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "55": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 4233,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "56": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 4312,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "57": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 4388,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "58": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 4464,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "59": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 4540,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "60": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 4616,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "61": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 4687,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "62": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 4762,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "63": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 4834,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "64": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 4908,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "65": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 4979,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "66": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 5054,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "67": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 5123,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "68": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 5193,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "69": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 5263,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "70": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 5331,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "71": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 5400,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "72": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 5469,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "73": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 5537,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "74": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 5606,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "75": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 5677,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "76": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 5742,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "77": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 5815,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "78": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 5887,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "79": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 5956,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "80": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 6023,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "81": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 6091,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "82": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 6164,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "83": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 6237,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "84": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 6301,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "85": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 6365,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "86": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 6426,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "87": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 6487,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "88": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 6543,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "89": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 6600,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "90": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 6661,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "91": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 6719,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "92": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 6778,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "93": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 6842,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "94": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 6902,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "95": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 6964,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "96": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 7034,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "97": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 7083,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "98": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 7163,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "99": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 7195,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "100": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 7250,
+          "name": "lebron",
+          "action": "moving"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 7254,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "101": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 7304,
+          "name": "lebron",
+          "action": "moving"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 7309,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "102": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 7362,
+          "name": "lebron",
+          "action": "moving"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 7367,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "103": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 7415,
+          "name": "lebron",
+          "action": "moving"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 7416,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "104": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 7471,
+          "name": "lebron",
+          "action": "moving"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 7474,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "105": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 7529,
+          "name": "lebron",
+          "action": "moving"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 7530,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "106": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 7588,
+          "name": "lebron",
+          "action": "moving"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 7591,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "107": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 7644,
+          "name": "lebron",
+          "action": "moving"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 7648,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "108": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 7705,
+          "name": "lebron",
+          "action": "moving"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 7709,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "109": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 7764,
+          "name": "lebron",
+          "action": "moving"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 7768,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "110": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 7824,
+          "name": "lebron",
+          "action": "moving"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 7829,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "111": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 7881,
+          "name": "lebron",
+          "action": "moving"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 7886,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "112": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 7942,
+          "name": "lebron",
+          "action": "moving"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 7944,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "113": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 8004,
+          "name": "lebron",
+          "action": "moving"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 8012,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "114": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 8066,
+          "name": "lebron",
+          "action": "moving"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 8074,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "115": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 8129,
+          "name": "lebron",
+          "action": "moving"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 8135,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "116": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 8193,
+          "name": "lebron",
+          "action": "moving"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 8201,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "117": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 8256,
+          "name": "lebron",
+          "action": "moving"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 8261,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "118": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 8319,
+          "name": "lebron",
+          "action": "moving"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 8320,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "119": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 8380,
+          "name": "lebron",
+          "action": "moving"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 8381,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "120": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 8440,
+          "name": "opp",
+          "action": "defending"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 8442,
+          "name": "lebron",
+          "action": "moving"
+        }
+      }
+    },
+    "121": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 8499,
+          "name": "lebron",
+          "action": "moving"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 8502,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "122": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 8560,
+          "name": "opp",
+          "action": "defending"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 8561,
+          "name": "lebron",
+          "action": "moving"
+        }
+      }
+    },
+    "123": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 8620,
+          "name": "opp",
+          "action": "defending"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 8623,
+          "name": "lebron",
+          "action": "moving"
+        }
+      }
+    },
+    "124": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 8685,
+          "name": "lebron",
+          "action": "moving"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 8697,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "125": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 8743,
+          "name": "lebron",
+          "action": "moving"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 8749,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "126": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 8809,
+          "name": "lebron",
+          "action": "moving"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 8826,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "127": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 8871,
+          "name": "lebron",
+          "action": "moving"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 8878,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "128": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 8939,
+          "name": "opp",
+          "action": "defending"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 8974,
+          "name": "lebron",
+          "action": "moving"
+        }
+      }
+    },
+    "129": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 9000,
+          "name": "lebron",
+          "action": "moving"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 9027,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "130": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 9079,
+          "name": "lebron",
+          "action": "moving"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 9112,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "131": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 9131,
+          "name": "lebron",
+          "action": "moving"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 9149,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "132": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 9182,
+          "name": "lebron",
+          "action": "moving"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 9198,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "133": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 9242,
+          "name": "lebron",
+          "action": "moving"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 9257,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "134": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 9304,
+          "name": "lebron",
+          "action": "moving"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 9325,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "135": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 9369,
+          "name": "lebron",
+          "action": "moving"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 9385,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "136": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 9427,
+          "name": "lebron",
+          "action": "moving"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 9451,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "137": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 9498,
+          "name": "lebron",
+          "action": "moving"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 9526,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "138": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 9563,
+          "name": "lebron",
+          "action": "moving"
+        },
+        "10": {
+          "track_id": 10,
+          "det_id": 9582,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "139": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 9626,
+          "name": "opp",
+          "action": "defending"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 9644,
+          "name": "lebron",
+          "action": "moving"
+        }
+      }
+    },
+    "140": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 9682,
+          "name": "opp",
+          "action": "defending"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 9725,
+          "name": "lebron",
+          "action": "moving"
+        }
+      }
+    },
+    "141": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 9728,
+          "name": "opp",
+          "action": "defending"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 9764,
+          "name": "lebron",
+          "action": "moving"
+        }
+      }
+    },
+    "142": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 9788,
+          "name": "opp",
+          "action": "defending"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 9798,
+          "name": "lebron",
+          "action": "moving"
+        }
+      }
+    },
+    "143": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 9851,
+          "name": "opp",
+          "action": "defending"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 9864,
+          "name": "lebron",
+          "action": "moving"
+        }
+      }
+    },
+    "144": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 9911,
+          "name": "opp",
+          "action": "defending"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 9945,
+          "name": "lebron",
+          "action": "moving"
+        }
+      }
+    },
+    "145": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 9974,
+          "name": "opp",
+          "action": "defending"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 9992,
+          "name": "lebron",
+          "action": "moving"
+        }
+      }
+    },
+    "146": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 10034,
+          "name": "opp",
+          "action": "defending"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 10055,
+          "name": "lebron",
+          "action": "moving"
+        }
+      }
+    },
+    "147": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 10092,
+          "name": "opp",
+          "action": "defending"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 10120,
+          "name": "lebron",
+          "action": "moving"
+        }
+      }
+    },
+    "148": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 10151,
+          "name": "opp",
+          "action": "defending"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 10168,
+          "name": "lebron",
+          "action": "moving"
+        }
+      }
+    },
+    "149": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 10210,
+          "name": "opp",
+          "action": "defending"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 10221,
+          "name": "lebron",
+          "action": "moving"
+        }
+      }
+    },
+    "150": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 10269,
+          "name": "opp",
+          "action": "defending"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 10281,
+          "name": "lebron",
+          "action": "moving"
+        }
+      }
+    },
+    "151": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 10333,
+          "name": "opp",
+          "action": "defending"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 10345,
+          "name": "lebron",
+          "action": "moving"
+        }
+      }
+    },
+    "152": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 10396,
+          "name": "opp",
+          "action": "defending"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 10401,
+          "name": "lebron",
+          "action": "moving"
+        }
+      }
+    },
+    "153": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 10454,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "154": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 10510,
+          "name": "opp",
+          "action": "defending"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 10540,
+          "name": "lebron",
+          "action": "moving"
+        }
+      }
+    },
+    "155": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 10565,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "156": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 10621,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "157": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 10671,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "158": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 10723,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "159": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 10776,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "160": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 10830,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "161": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 10883,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "162": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 10937,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "163": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 10989,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "164": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 11071,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "165": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 11100,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "166": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 11151,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "167": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 11206,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "168": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 11261,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "169": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 11310,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "170": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 11364,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "171": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 11424,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "172": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 11472,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "173": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 11525,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "174": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 11577,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "175": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 11629,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "176": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 11681,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "177": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 11736,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "178": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 11785,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "179": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 11839,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "180": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 11901,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "181": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 11961,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "182": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 12018,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "183": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 12093,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "184": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 12175,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "185": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 12193,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "186": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 12260,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "187": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 12317,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "188": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 12390,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "189": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 12435,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "190": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 12491,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "191": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 12549,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "192": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 12618,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "193": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 12669,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "194": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 12737,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "195": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 12795,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "196": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 12852,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "197": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 12910,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "198": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 12964,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "199": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 13019,
+          "name": "opp",
+          "action": "defending"
+        }
+      }
+    },
+    "200": {
+      "frame": 200,
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 13076,
+          "name": "opp",
+          "action": "defending",
+          "annotations": null
+        },
+        "12": {
+          "track_id": 12,
+          "det_id": 13072,
+          "name": "ref",
+          "action": "running",
+          "annotations": null
+        }
+      }
+    },
+    "201": {
+      "frame": 201,
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 13129,
+          "name": "opp",
+          "action": "defending",
+          "annotations": null
+        },
+        "12": {
+          "track_id": 12,
+          "det_id": 13133,
+          "name": "ref",
+          "action": "running",
+          "annotations": null
+        }
+      }
+    },
+    "202": {
+      "frame": 202,
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 13186,
+          "name": "opp",
+          "action": "defending",
+          "annotations": null
+        },
+        "12": {
+          "track_id": 12,
+          "det_id": 13191,
+          "name": "ref",
+          "action": "running",
+          "annotations": null
+        }
+      }
+    },
+    "203": {
+      "frame": 203,
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 13243,
+          "name": "opp",
+          "action": "defending",
+          "annotations": null
+        },
+        "12": {
+          "track_id": 12,
+          "det_id": 13253,
+          "name": "ref",
+          "action": "running",
+          "annotations": null
+        }
+      }
+    },
+    "204": {
+      "frame": 204,
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 13301,
+          "name": "opp",
+          "action": "defending",
+          "annotations": null
+        },
+        "12": {
+          "track_id": 12,
+          "det_id": 13303,
+          "name": "ref",
+          "action": "running",
+          "annotations": null
+        }
+      }
+    },
+    "205": {
+      "frame": 205,
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 13351,
+          "name": "opp",
+          "action": "defending",
+          "annotations": null
+        },
+        "12": {
+          "track_id": 12,
+          "det_id": 13355,
+          "name": "ref",
+          "action": "running",
+          "annotations": null
+        }
+      }
+    },
+    "206": {
+      "frame": 206,
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 13411,
+          "name": "opp",
+          "action": "defending",
+          "annotations": null
+        },
+        "12": {
+          "track_id": 12,
+          "det_id": 13414,
+          "name": "ref",
+          "action": "running",
+          "annotations": null
+        }
+      }
+    },
+    "207": {
+      "frame": 207,
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 13474,
+          "name": "opp",
+          "action": "defending",
+          "annotations": null
+        },
+        "12": {
+          "track_id": 12,
+          "det_id": 13470,
+          "name": "ref",
+          "action": "running",
+          "annotations": null
+        }
+      }
+    },
+    "208": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 13539,
+          "name": "opp",
+          "action": "defending"
+        },
+        "12": {
+          "name": "ref",
+          "action": "running"
+        }
+      }
+    },
+    "209": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 13583,
+          "name": "opp",
+          "action": "defending"
+        },
+        "12": {
+          "name": "ref",
+          "action": "running"
+        }
+      }
+    },
+    "210": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 13642,
+          "name": "opp",
+          "action": "defending"
+        },
+        "12": {
+          "name": "ref",
+          "action": "running"
+        }
+      }
+    },
+    "211": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 13721,
+          "name": "opp",
+          "action": "defending"
+        },
+        "12": {
+          "name": "ref",
+          "action": "running"
+        }
+      }
+    },
+    "212": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 13764,
+          "name": "opp",
+          "action": "defending"
+        },
+        "12": {
+          "name": "ref",
+          "action": "running"
+        }
+      }
+    },
+    "213": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 13823,
+          "name": "opp",
+          "action": "defending"
+        },
+        "12": {
+          "name": "ref",
+          "action": "running"
+        }
+      }
+    },
+    "214": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 13886,
+          "name": "opp",
+          "action": "defending"
+        },
+        "12": {
+          "name": "ref",
+          "action": "running"
+        }
+      }
+    },
+    "215": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 13947,
+          "name": "opp",
+          "action": "defending"
+        },
+        "12": {
+          "name": "ref",
+          "action": "running"
+        }
+      }
+    },
+    "216": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 14016,
+          "name": "opp",
+          "action": "defending"
+        },
+        "12": {
+          "name": "ref",
+          "action": "running"
+        }
+      }
+    },
+    "217": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 14072,
+          "name": "opp",
+          "action": "defending"
+        },
+        "12": {
+          "name": "ref",
+          "action": "running"
+        }
+      }
+    },
+    "218": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 14140,
+          "name": "opp",
+          "action": "defending"
+        },
+        "12": {
+          "name": "ref",
+          "action": "running"
+        }
+      }
+    },
+    "219": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 14207,
+          "name": "opp",
+          "action": "defending"
+        },
+        "12": {
+          "name": "ref",
+          "action": "running"
+        }
+      }
+    },
+    "223": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 14483,
+          "name": "opp",
+          "action": "defending"
+        },
+        "12": {
+          "name": "ref",
+          "action": "running"
+        }
+      }
+    },
+    "350": {
+      "frame": 350,
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "621": {
+          "track_id": 621,
+          "det_id": 17596,
+          "name": "lebron",
+          "action": "dunking",
+          "annotations": null
+        }
+      }
+    },
+    "351": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "621": {
+          "track_id": 621,
+          "det_id": 17616,
+          "name": "lebron",
+          "action": "dunking"
+        }
+      }
+    },
+    "352": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "621": {
+          "track_id": 621,
+          "det_id": 17635,
+          "name": "lebron",
+          "action": "dunking"
+        }
+      }
+    },
+    "353": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "621": {
+          "track_id": 621,
+          "det_id": 17649,
+          "name": "lebron",
+          "action": "dunking"
+        }
+      }
+    },
+    "354": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "621": {
+          "track_id": 621,
+          "det_id": 17663,
+          "name": "lebron",
+          "action": "dunking"
+        }
+      }
+    },
+    "355": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "621": {
+          "track_id": 621,
+          "det_id": 17680,
+          "name": "lebron",
+          "action": "dunking"
+        }
+      }
+    },
+    "356": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "621": {
+          "track_id": 621,
+          "det_id": 17697,
+          "name": "lebron",
+          "action": "dunking"
+        }
+      }
+    },
+    "357": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "621": {
+          "track_id": 621,
+          "det_id": 17712,
+          "name": "lebron",
+          "action": "dunking"
+        }
+      }
+    },
+    "358": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "621": {
+          "track_id": 621,
+          "det_id": 17729,
+          "name": "lebron",
+          "action": "dunking"
+        }
+      }
+    },
+    "359": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "621": {
+          "track_id": 621,
+          "det_id": 17744,
+          "name": "lebron",
+          "action": "dunking"
+        }
+      }
+    },
+    "360": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "621": {
+          "track_id": 621,
+          "det_id": 17760,
+          "name": "lebron",
+          "action": "dunking"
+        }
+      }
+    },
+    "361": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "621": {
+          "track_id": 621,
+          "det_id": 17773,
+          "name": "lebron",
+          "action": "dunking"
+        }
+      }
+    },
+    "362": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "621": {
+          "track_id": 621,
+          "det_id": 17792,
+          "name": "lebron",
+          "action": "dunking"
+        }
+      }
+    },
+    "363": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "621": {
+          "track_id": 621,
+          "det_id": 17810,
+          "name": "lebron",
+          "action": "dunking"
+        }
+      }
+    },
+    "364": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "621": {
+          "track_id": 621,
+          "det_id": 17826,
+          "name": "lebron",
+          "action": "dunking"
+        }
+      }
+    },
+    "365": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "621": {
+          "track_id": 621,
+          "det_id": 17845,
+          "name": "lebron",
+          "action": "dunking"
+        }
+      }
+    },
+    "366": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "621": {
+          "track_id": 621,
+          "det_id": 17864,
+          "name": "lebron",
+          "action": "dunking"
+        }
+      }
+    },
+    "367": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "621": {
+          "track_id": 621,
+          "det_id": 17884,
+          "name": "lebron",
+          "action": "dunking"
+        }
+      }
+    },
+    "368": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "621": {
+          "track_id": 621,
+          "det_id": 17904,
+          "name": "lebron",
+          "action": "dunking"
+        }
+      }
+    },
+    "369": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "621": {
+          "track_id": 621,
+          "det_id": 17926,
+          "name": "lebron",
+          "action": "dunking"
+        }
+      }
+    },
+    "370": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "621": {
+          "track_id": 621,
+          "det_id": 17939,
+          "name": "lebron",
+          "action": "dunking"
+        }
+      }
+    },
+    "371": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "621": {
+          "track_id": 621,
+          "det_id": 17956,
+          "name": "lebron",
+          "action": "dunking"
+        }
+      }
+    },
+    "372": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "621": {
+          "track_id": 621,
+          "det_id": 17976,
+          "name": "lebron",
+          "action": "dunking"
+        }
+      }
+    },
+    "373": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "621": {
+          "track_id": 621,
+          "det_id": 17994,
+          "name": "lebron",
+          "action": "dunking"
+        }
+      }
+    },
+    "374": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "621": {
+          "track_id": 621,
+          "det_id": 18008,
+          "name": "lebron",
+          "action": "dunking"
+        }
+      }
+    },
+    "380": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "621": {
+          "track_id": 621,
+          "det_id": 18141,
+          "name": "lebron",
+          "action": "dunking"
+        }
+      }
+    },
+    "381": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "621": {
+          "track_id": 621,
+          "det_id": 18160,
+          "name": "lebron",
+          "action": "dunking"
+        }
+      }
+    },
+    "382": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "621": {
+          "track_id": 621,
+          "det_id": 18171,
+          "name": "lebron",
+          "action": "dunking"
+        }
+      }
+    },
+    "383": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "621": {
+          "track_id": 621,
+          "det_id": 18196,
+          "name": "lebron",
+          "action": "dunking"
+        }
+      }
+    },
+    "384": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "621": {
+          "track_id": 621,
+          "det_id": 18215,
+          "name": "lebron",
+          "action": "dunking"
+        }
+      }
+    },
+    "385": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "621": {
+          "track_id": 621,
+          "det_id": 18234,
+          "name": "lebron",
+          "action": "dunking"
+        }
+      }
+    },
+    "386": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "621": {
+          "track_id": 621,
+          "det_id": 18259,
+          "name": "lebron",
+          "action": "dunking"
+        }
+      }
+    },
+    "388": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "621": {
+          "track_id": 621,
+          "det_id": 18308,
+          "name": "lebron",
+          "action": "dunking"
+        }
+      }
+    },
+    "220": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "12": {
+          "name": "ref",
+          "action": "running"
+        }
+      }
+    },
+    "221": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "12": {
+          "name": "ref",
+          "action": "running"
+        }
+      }
+    },
+    "222": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "12": {
+          "name": "ref",
+          "action": "running"
+        }
+      }
+    },
+    "224": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "12": {
+          "name": "ref",
+          "action": "running"
+        }
+      }
+    },
+    "225": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "12": {
+          "name": "ref",
+          "action": "running"
+        }
+      }
+    },
+    "226": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "12": {
+          "name": "ref",
+          "action": "running"
+        }
+      }
+    },
+    "227": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "12": {
+          "name": "ref",
+          "action": "running"
+        }
+      }
+    },
+    "228": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "12": {
+          "name": "ref",
+          "action": "running"
+        }
+      }
+    },
+    "229": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "12": {
+          "name": "ref",
+          "action": "running"
+        }
+      }
+    },
+    "230": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "12": {
+          "name": "ref",
+          "action": "running"
+        }
+      }
+    },
+    "231": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "12": {
+          "name": "ref",
+          "action": "running"
+        }
+      }
+    },
+    "232": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "12": {
+          "name": "ref",
+          "action": "running"
+        }
+      }
+    },
+    "233": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "12": {
+          "name": "ref",
+          "action": "running"
+        }
+      }
+    },
+    "234": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "12": {
+          "name": "ref",
+          "action": "running"
+        }
+      }
+    },
+    "235": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "12": {
+          "name": "ref",
+          "action": "running"
+        }
+      }
+    },
+    "236": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "12": {
+          "name": "ref",
+          "action": "running"
+        }
+      }
+    },
+    "237": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "12": {
+          "name": "ref",
+          "action": "running"
+        }
+      }
+    },
+    "238": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "12": {
+          "name": "ref",
+          "action": "running"
+        }
+      }
+    },
+    "239": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "12": {
+          "name": "ref",
+          "action": "running"
+        }
+      }
+    },
+    "240": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "12": {
+          "name": "ref",
+          "action": "running"
+        }
+      }
+    },
+    "241": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "12": {
+          "name": "ref",
+          "action": "running"
+        }
+      }
+    },
+    "242": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "12": {
+          "name": "ref",
+          "action": "running"
+        }
+      }
+    },
+    "243": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "12": {
+          "name": "ref",
+          "action": "running"
+        }
+      }
+    },
+    "244": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "12": {
+          "name": "ref",
+          "action": "running"
+        }
+      }
+    },
+    "245": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "12": {
+          "name": "ref",
+          "action": "running"
+        }
+      }
+    }
+  }
+}

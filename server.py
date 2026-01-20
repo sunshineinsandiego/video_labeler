@@ -86,6 +86,26 @@ def _sanitize_segment(value: str, fallback: str) -> str:
     return cleaned or fallback
 
 
+def _safe_study_id(study_id: str) -> str:
+    cleaned = study_id.strip()
+    if not cleaned:
+        raise HTTPException(status_code=400, detail="Study ID is required")
+    parts = Path(cleaned).parts
+    if len(parts) != 1 or parts[0] in (".", "..") or "\\" in cleaned:
+        raise HTTPException(status_code=400, detail="Invalid study ID")
+    return cleaned
+
+
+def _safe_filename(filename: str) -> str:
+    if not filename:
+        return ""
+    normalized = filename.replace("\\", "/")
+    base = Path(normalized).name
+    if base in ("", ".", ".."):
+        raise HTTPException(status_code=400, detail="Invalid filename")
+    return base
+
+
 def _user_key(email: str) -> str:
     local = email.split("@", 1)[0].strip().lower()
     safe = "".join(ch if ch.isalnum() or ch in ("-", "_") else "_" for ch in local)
@@ -171,7 +191,7 @@ def _render_login_page(error: Optional[str] = None) -> str:
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>XR Annotate</title>
+    <title>Video Annotate</title>
     <style>
       body {{
         font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
@@ -233,7 +253,7 @@ def _render_login_page(error: Optional[str] = None) -> str:
   </head>
   <body>
     <div class="card">
-      <h1>XR Annotate</h1>
+      <h1>Video Annotate</h1>
       {error_block}
       <form method="post" action="/auth/login">
         <label for="email">Email</label>
@@ -349,7 +369,7 @@ async def index() -> FileResponse:
     return FileResponse(index_path)
 
 
-def get_video_capture(user_key: str, video_id: str, video_path: Path) -> cv2.VideoCapture:
+def get_video_capture(user_key: str, video_id: str, video_path: Path) -> Dict[str, Any]:
     """
     Get a cached video capture object, or create a new one.
     Keeps video files open in memory for faster frame access.
@@ -366,8 +386,9 @@ def get_video_capture(user_key: str, video_id: str, video_path: Path) -> cv2.Vid
             if cache_entry["capture"].isOpened():
                 # Update last access time
                 cache_entry["last_access"] = current_time
+                cache_entry.setdefault("lock", Lock())
                 logger.debug(f"Reusing cached video capture for {video_id}")
-                return cache_entry["capture"]
+                return cache_entry
             else:
                 # Capture is closed, remove from cache
                 logger.info(f"Cached video capture for {video_id} was closed, removing from cache")
@@ -397,10 +418,11 @@ def get_video_capture(user_key: str, video_id: str, video_path: Path) -> cv2.Vid
             "capture": cap,
             "path": video_path,
             "last_access": current_time,
+            "lock": Lock(),
         }
         
         logger.info(f"Created new cached video capture for {video_id}")
-        return cap
+        return user_cache[video_id]
 
 
 def get_video_info(video_path: Path) -> Dict[str, Any]:
@@ -619,11 +641,18 @@ async def get_frame(request: Request, video_id: str, frame_index: int) -> Respon
     try:
         # Get cached video capture (or create new one)
         # This keeps the video file open in SERVER memory, not browser
-        cap = get_video_capture(user_key, video_id, video_path)
+        cache_entry = get_video_capture(user_key, video_id, video_path)
+        cap = cache_entry["capture"]
+        lock = cache_entry.get("lock")
         
         # Seek to the requested frame
-        cap.set(cv2.CAP_PROP_POS_FRAMES, frame_index)
-        ret, frame = cap.read()
+        if lock:
+            with lock:
+                cap.set(cv2.CAP_PROP_POS_FRAMES, frame_index)
+                ret, frame = cap.read()
+        else:
+            cap.set(cv2.CAP_PROP_POS_FRAMES, frame_index)
+            ret, frame = cap.read()
         
         if not ret or frame is None:
             raise HTTPException(status_code=404, detail=f"Frame {frame_index} not found in video")
@@ -636,6 +665,8 @@ async def get_frame(request: Request, video_id: str, frame_index: int) -> Respon
         # Return frame as JPEG (browser only receives this single frame, not the whole video)
         return Response(content=frame_bytes, media_type="image/jpeg")
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error extracting frame {frame_index} from video {video_id}: {e}")
         # On error, try to remove from cache and retry once
@@ -742,10 +773,25 @@ async def save_frame_annotations(
     payload: Dict[str, Any] = Body(...)
 ) -> JSONResponse:
     """Save annotations for a specific frame."""
+    study_id = _safe_study_id(study_id)
     user_key, _, temp_root = _user_dirs(request)
     frame_annotations = _user_frame_annotations(user_key)
     if study_id not in frame_annotations:
         frame_annotations[study_id] = {}
+
+    # Normalize payload for easier inspection/debugging.
+    payload["frame"] = frame_index
+    bounding_boxes = payload.get("bounding_boxes")
+    if isinstance(bounding_boxes, dict):
+        for track_id_key, bbox_ann in bounding_boxes.items():
+            if not isinstance(bbox_ann, dict):
+                continue
+            try:
+                track_id = int(track_id_key) if isinstance(track_id_key, str) and track_id_key.isdigit() else track_id_key
+            except Exception:
+                track_id = track_id_key
+            bbox_ann.setdefault("track_id", track_id)
+            bbox_ann.setdefault("det_id", None)
     
     frame_annotations[study_id][frame_index] = payload
     
@@ -800,7 +846,9 @@ async def get_frame_annotations(
     frame_index: int
 ) -> JSONResponse:
     """Get annotations for a specific frame."""
+    study_id = _safe_study_id(study_id)
     user_key, study_root, temp_root = _user_dirs(request)
+    frame_annotations = _user_frame_annotations(user_key)
     frame_annotations = _user_frame_annotations(user_key)
 
     # 1. Check Memory (Fastest, most recent)
@@ -853,6 +901,8 @@ async def migrate_study_annotations(
     to_study_id: str
 ) -> JSONResponse:
     """Migrate annotations from one study ID to another in the temp file."""
+    from_study_id = _safe_study_id(from_study_id)
+    to_study_id = _safe_study_id(to_study_id)
     user_key, _, temp_root = _user_dirs(request)
     from_temp_file = temp_root / f"{from_study_id}_annotations.json"
     to_temp_file = temp_root / f"{to_study_id}_annotations.json"
@@ -948,8 +998,8 @@ async def save_annotations(
     """Save a study with all annotations."""
     if not study_id or not study_id.strip():
         raise HTTPException(status_code=400, detail="Study ID is required")
-    
-    study_id = study_id.strip()
+
+    study_id = _safe_study_id(study_id)
     
     try:
         payload_data = json.loads(payload)
@@ -958,12 +1008,15 @@ async def save_annotations(
         raise HTTPException(status_code=400, detail=f"Invalid JSON payload: {str(e)}")
     
     user_key, study_root, temp_root = _user_dirs(request)
+    frame_annotations = _user_frame_annotations(user_key)
     study_dir = study_root / study_id
     
     # Get video_id and original filename from payload
     video_id = payload_data.get("video_id")
-    original_filename = payload_data.get("original_filename", "")
+    original_filename = _safe_filename(payload_data.get("original_filename", ""))
     source_study_id = payload_data.get("source_study_id")
+    if source_study_id:
+        source_study_id = _safe_study_id(source_study_id)
     is_new_upload = bool(payload_data.get("is_new_upload"))
     
     # Overwrite existing study directory if this is a new upload
@@ -1082,28 +1135,6 @@ async def save_annotations(
     
     logger.info(f"Total frames with annotations after loading: {len(all_frame_annotations)}")
     
-    # Build map of track_id -> annotations
-    track_annotations = {}
-    annotated_track_ids = set()
-    
-    for frame_idx, frame_ann in all_frame_annotations.items():
-        bounding_boxes = frame_ann.get("bounding_boxes", {})
-        for track_id_str, bbox_ann in bounding_boxes.items():
-            if bbox_ann.get("name") or bbox_ann.get("action"):
-                try:
-                    track_id = int(track_id_str) if isinstance(track_id_str, str) and track_id_str.isdigit() else track_id_str
-                    annotated_track_ids.add(track_id)
-                    track_annotations[track_id] = {
-                        "name": bbox_ann.get("name"),
-                        "action": bbox_ann.get("action")
-                    }
-                except (ValueError, TypeError):
-                    annotated_track_ids.add(track_id_str)
-                    track_annotations[track_id_str] = {
-                        "name": bbox_ann.get("name"),
-                        "action": bbox_ann.get("action")
-                    }
-    
     # Save as JSONL file
     if not video_id:
         raise HTTPException(status_code=400, detail="video_id is required to save annotations")
@@ -1178,29 +1209,29 @@ async def save_annotations(
                     track_record = json.loads(line)
                     track_id = track_record.get("track_id")
                     frame_idx = track_record.get("frame")
-                    
-                    # Only include annotated tracks
-                    if track_id is None or track_id not in annotated_track_ids:
+
+                    if track_id is None or frame_idx is None:
                         continue
-                    
-                    # Get name and action
-                    ann = track_annotations.get(track_id)
-                    name_val = None
-                    action_val = None
-                    if ann:
-                        name_val = ann.get("name")
-                        if name_val and name_val.strip():
-                            name_val = name_val.strip()
-                        else:
-                            name_val = None
-                        
-                        action_val = ann.get("action")
-                        if action_val and action_val.strip():
-                            action_val = action_val.strip()
-                        else:
-                            action_val = None
-                    
-                    # Add name and action if present
+
+                    frame_ann = all_frame_annotations.get(frame_idx) or all_frame_annotations.get(str(frame_idx), {})
+                    bounding_boxes = frame_ann.get("bounding_boxes", {}) if isinstance(frame_ann, dict) else {}
+                    bbox_ann = bounding_boxes.get(str(track_id)) or bounding_boxes.get(track_id)
+
+                    if not bbox_ann:
+                        continue
+
+                    name_val = bbox_ann.get("name")
+                    if isinstance(name_val, str):
+                        name_val = name_val.strip() or None
+
+                    action_val = bbox_ann.get("action")
+                    if isinstance(action_val, str):
+                        action_val = action_val.strip() or None
+
+                    if not name_val and not action_val:
+                        continue
+
+                    # Add name and action if present for this specific frame
                     if name_val:
                         track_record["name"] = name_val
                     if action_val:
@@ -1283,7 +1314,6 @@ async def save_annotations(
         
         # Also save metadata file with original video filename
         metadata_path = study_dir / f"{study_id}_metadata.json"
-        original_filename = payload_data.get("original_filename", "")
         with metadata_path.open("w", encoding="utf-8") as f:
             json.dump({"original_filename": original_filename, "study_id": study_id}, f, indent=2)
     else:
@@ -1349,7 +1379,6 @@ async def save_annotations(
     
     # Also save metadata file with original video filename
     metadata_path = study_dir / f"{study_id}_metadata.json"
-    original_filename = payload_data.get("original_filename", "")
     with metadata_path.open("w", encoding="utf-8") as f:
         json.dump({"original_filename": original_filename, "study_id": study_id}, f, indent=2)
     
@@ -1388,6 +1417,74 @@ def load_study(study_root: Path, study_id: str) -> Optional[Dict[str, Any]]:
             return None
     
     return None
+
+
+def _find_study_video(study_dir: Path, original_filename: str) -> Optional[Path]:
+    if original_filename:
+        candidate = study_dir / original_filename
+        if candidate.exists():
+            return candidate
+    for ext in [".mp4", ".avi", ".mov", ".mkv"]:
+        for f in study_dir.iterdir():
+            if f.suffix.lower() == ext:
+                return f
+    return None
+
+
+def _find_keypoints_file(study_dir: Path) -> Optional[Path]:
+    candidate = study_dir / "keypoints_tracks.jsonl"
+    if candidate.exists():
+        return candidate
+    for f in study_dir.iterdir():
+        if f.suffix.lower() == ".jsonl" and "keypoints" in f.name.lower():
+            return f
+    return None
+
+
+def _study_data_for_propagation(
+    user_key: str,
+    study_root: Path,
+    temp_root: Path,
+    study_id: str,
+    video_id: Optional[str],
+) -> Optional[Dict[str, Any]]:
+    temp_data = _user_temp_studies(user_key).get(video_id) if video_id else None
+    if temp_data and temp_data.get("total_frames") is not None and temp_data.get("keypoints_tracks") is not None:
+        return temp_data
+
+    study_dir = study_root / study_id
+    if not study_dir.exists():
+        return None
+
+    metadata = load_study(study_root, study_id) or {}
+    try:
+        original_filename = _safe_filename(metadata.get("original_filename", ""))
+    except HTTPException:
+        original_filename = ""
+    video_path = _find_study_video(study_dir, original_filename)
+    if not video_path:
+        return None
+
+    try:
+        video_info = get_video_info(video_path)
+    except Exception:
+        return None
+
+    keypoints_tracks = {}
+    if video_id:
+        temp_keypoints = temp_root / f"keypoints_{video_id}.jsonl"
+        if temp_keypoints.exists():
+            keypoints_tracks = load_keypoints_tracks(temp_keypoints)
+
+    if not keypoints_tracks:
+        keypoints_path = _find_keypoints_file(study_dir)
+        if keypoints_path:
+            keypoints_tracks = load_keypoints_tracks(keypoints_path)
+
+    return {
+        "total_frames": video_info["total_frames"],
+        "keypoints_tracks": keypoints_tracks,
+    }
 
 
 def parse_coords(coords_str: str) -> List[Dict[str, float]]:
@@ -1453,6 +1550,8 @@ def load_study_annotations_to_temp(user_key: str, study_root: Path, temp_root: P
                             action = record.get("action")
                             if name or action:
                                 all_frame_annotations[frame_idx]["bounding_boxes"][str(track_id)] = {
+                                    "track_id": track_id,
+                                    "det_id": record.get("det_id"),
                                     "name": name,
                                     "action": action
                                 }
@@ -1672,6 +1771,7 @@ async def get_study(request: Request, study_id: str) -> JSONResponse:
     4. Parses JSONL annotations and writes to temp format
     5. Returns all necessary data for the frontend
     """
+    study_id = _safe_study_id(study_id)
     user_key, study_root, temp_root = _user_dirs(request)
     _clear_user_temp(user_key, temp_root)
     study_dir = study_root / study_id
@@ -1684,7 +1784,10 @@ async def get_study(request: Request, study_id: str) -> JSONResponse:
     if not metadata:
         metadata = {}
     
-    original_filename = metadata.get("original_filename", "")
+    try:
+        original_filename = _safe_filename(metadata.get("original_filename", ""))
+    except HTTPException:
+        original_filename = ""
     
     # Find and copy video file to temp
     video_path = None
@@ -1806,6 +1909,7 @@ async def export_study_jsonl(request: Request, study_id: str) -> FileResponse:
     Export study annotations - just returns the saved annotations.jsonl file.
     The saved file is already in the correct format (JSONL with name/action added).
     """
+    study_id = _safe_study_id(study_id)
     _, study_root, _ = _user_dirs(request)
     study_dir = study_root / study_id
     annotations_path = study_dir / f"{study_id}_annotations.jsonl"
@@ -1831,6 +1935,7 @@ async def propagate_labels(
     Does not overwrite existing labels in earlier frames.
     payload: {track_id, frame_index, name, action, video_id}
     """
+    study_id = _safe_study_id(study_id)
     track_id = payload.get("track_id")
     frame_index = payload.get("frame_index")
     name = payload.get("name")
@@ -1843,16 +1948,7 @@ async def propagate_labels(
     user_key, study_root, temp_root = _user_dirs(request)
     frame_annotations = _user_frame_annotations(user_key)
 
-    # Try to load study from disk first
-    study_data = load_study(study_root, study_id)
-    
-    # If study not found and video_id provided, try to use temp study data
-    if not study_data and video_id:
-        temp_data = _user_temp_studies(user_key).get(video_id)
-        if temp_data:
-            study_data = temp_data
-            logger.info(f"Using temp study data for video_id {video_id}")
-    
+    study_data = _study_data_for_propagation(user_key, study_root, temp_root, study_id, video_id)
     if not study_data:
         raise HTTPException(status_code=404, detail="Study not found. Please save the study first or provide video_id.")
     

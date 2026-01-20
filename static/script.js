@@ -598,11 +598,29 @@ async function loadFrameAnnotations(frameIndex) {
       // IMPORTANT: Clear bounding boxes first, then only add the ones from this frame
       // This prevents annotations from previous frames from persisting
       state.boundingBoxes = {};
+      const frameTracks = state.keypointsTracks[frameIndex] ||
+        state.keypointsTracks[String(frameIndex)] ||
+        state.keypointsTracks[frameIndex?.toString?.()] ||
+        [];
       if (data.bounding_boxes && Object.keys(data.bounding_boxes).length > 0) {
         // Update state.boundingBoxes with labels from this frame
         // This ensures labels are available for rendering
         for (const [trackId, bboxData] of Object.entries(data.bounding_boxes)) {
+          let resolvedTrackId = bboxData.track_id || trackId;
+          let resolvedDetId = bboxData.det_id ?? null;
+          if (resolvedDetId == null) {
+            const match = frameTracks.find((track) => {
+              const trackKey = track.track_id ?? track.id;
+              return trackKey != null && String(trackKey) === String(trackId);
+            });
+            if (match) {
+              resolvedTrackId = match.track_id ?? match.id ?? resolvedTrackId;
+              resolvedDetId = match.det_id ?? resolvedDetId;
+            }
+          }
           state.boundingBoxes[trackId] = {
+            track_id: resolvedTrackId,
+            det_id: resolvedDetId,
             name: bboxData.name || null,
             action: bboxData.action || null,
             annotations: bboxData.annotations || null,
@@ -2145,6 +2163,15 @@ function onCanvasMouseDown(evt) {
     if (clickedTrack) {
       const trackId = clickedTrack.track_id || clickedTrack.id;
       state.selectedTrackId = trackId;
+      if (!state.boundingBoxes[trackId]) {
+        state.boundingBoxes[trackId] = {};
+      }
+      if (clickedTrack.track_id != null) {
+        state.boundingBoxes[trackId].track_id = clickedTrack.track_id;
+      }
+      if (clickedTrack.det_id != null) {
+        state.boundingBoxes[trackId].det_id = clickedTrack.det_id;
+      }
       updateBboxInfo();
       render();
       evt.preventDefault();
@@ -2536,9 +2563,27 @@ async function saveCurrentFrameAnnotations() {
   // Create frame-specific bounding boxes object
   // Only include bounding boxes that have labels (name or action)
   const frameBoundingBoxes = {};
+  const frameTracks = state.keypointsTracks[frameIndexToSave] ||
+    state.keypointsTracks[String(frameIndexToSave)] ||
+    state.keypointsTracks[frameIndexToSave?.toString?.()] ||
+    [];
   for (const [trackId, bboxData] of Object.entries(state.boundingBoxes)) {
     if (bboxData.name || bboxData.action) {
+      let resolvedTrackId = bboxData.track_id ?? trackId;
+      let resolvedDetId = bboxData.det_id ?? null;
+      if (resolvedDetId == null) {
+        const match = frameTracks.find((track) => {
+          const trackKey = track.track_id ?? track.id;
+          return trackKey != null && String(trackKey) === String(trackId);
+        });
+        if (match) {
+          resolvedTrackId = match.track_id ?? match.id ?? resolvedTrackId;
+          resolvedDetId = match.det_id ?? resolvedDetId;
+        }
+      }
       frameBoundingBoxes[trackId] = {
+        track_id: resolvedTrackId,
+        det_id: resolvedDetId,
         name: bboxData.name || null,
         action: bboxData.action || null,
         annotations: bboxData.annotations || null,
@@ -2547,6 +2592,7 @@ async function saveCurrentFrameAnnotations() {
   }
   
   const annotations = {
+    frame: frameIndexToSave,
     keypoints: state.keypoints || [],
     lines: state.lines || [],
     rois: state.rois || [],
