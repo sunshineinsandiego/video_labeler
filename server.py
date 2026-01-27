@@ -9,7 +9,7 @@ import uuid
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Set
 from threading import Lock
 
 import cv2
@@ -1991,6 +1991,50 @@ async def propagate_labels(
     # Propagate labels forward only (from frame_index onwards)
     updated_frames = []
     pending_updates: Dict[int, Dict[str, Any]] = {}
+
+    def _has_nonempty_label(value: Any) -> bool:
+        if value is None:
+            return False
+        if isinstance(value, str):
+            return value.strip() != ""
+        return True
+
+    def _frame_has_existing_label(frame_ann: Dict[str, Any]) -> bool:
+        if not isinstance(frame_ann, dict):
+            return False
+        bboxes = frame_ann.get("bounding_boxes") or {}
+        bbox_data = bboxes.get(track_id)
+        if bbox_data is None:
+            bbox_data = bboxes.get(str(track_id))
+        if not isinstance(bbox_data, dict):
+            return False
+        return _has_nonempty_label(bbox_data.get("name")) or _has_nonempty_label(bbox_data.get("action"))
+
+    preexisting_labeled_frames: Set[int] = set()
+    if study_id in frame_annotations:
+        for frame_key, frame_ann in frame_annotations[study_id].items():
+            try:
+                frame_idx_int = int(frame_key)
+            except Exception:
+                frame_idx_int = frame_key
+            if _frame_has_existing_label(frame_ann):
+                preexisting_labeled_frames.add(frame_idx_int)
+
+    temp_annotations_file = temp_root / f"{study_id}_annotations.json"
+    if temp_annotations_file.exists():
+        try:
+            with temp_annotations_file.open("r", encoding="utf-8") as f:
+                loaded_annotations = json.load(f)
+            temp_study_annotations = loaded_annotations.get(study_id, {})
+            for frame_key, frame_ann in temp_study_annotations.items():
+                try:
+                    frame_idx_int = int(frame_key)
+                except Exception:
+                    frame_idx_int = frame_key
+                if _frame_has_existing_label(frame_ann):
+                    preexisting_labeled_frames.add(frame_idx_int)
+        except Exception as e:
+            logger.warning(f"Failed to load temp annotations for propagation stop check: {e}")
     
     for frame_idx in range(frame_index, total_frames):
         # Check if this frame has the track_id
@@ -1998,6 +2042,8 @@ async def propagate_labels(
         has_track = any(track.get("track_id") == track_id for track in frame_tracks)
         
         if has_track:
+            if frame_idx > frame_index and frame_idx in preexisting_labeled_frames:
+                break
             matched_track = _find_track_for_frame(keypoints_tracks, frame_idx, track_id)
             # Get or create annotations for this frame
             if study_id not in frame_annotations:

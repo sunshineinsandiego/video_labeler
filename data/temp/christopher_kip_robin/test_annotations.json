@@ -816,58 +816,7 @@
         }
       }
     },
-    "52": {
-      "frame": 52,
-      "keypoints": [],
-      "lines": [],
-      "rois": [],
-      "measurements": {
-        "distances": [],
-        "angles": []
-      },
-      "bounding_boxes": {
-        "1": {
-          "track_id": 1,
-          "det_id": 4070,
-          "name": "lebron",
-          "action": "running"
-        },
-        "10": {
-          "track_id": 10,
-          "det_id": 4002,
-          "name": "Opp",
-          "action": "defense"
-        }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
-    },
-    "53": {
-      "frame": 53,
-      "keypoints": [],
-      "lines": [],
-      "rois": [],
-      "measurements": {
-        "distances": [],
-        "angles": []
-      },
-      "bounding_boxes": {
-        "1": {
-          "track_id": 1,
-          "det_id": 4107,
-          "name": "lebron",
-          "action": "running"
-        },
-        "10": {
-          "track_id": 10,
-          "det_id": 4079,
-          "name": "Opp",
-          "action": "defense"
-        }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
-    },
     "50": {
-      "frame": 50,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -882,11 +831,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "51": {
-      "frame": 51,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -901,11 +848,55 @@
           "name": "Opp",
           "action": "defense"
         }
+      }
+    },
+    "52": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
       },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 4002,
+          "name": "Opp",
+          "action": "defense"
+        },
+        "1": {
+          "track_id": 1,
+          "det_id": 4070,
+          "name": "lebron",
+          "action": "running"
+        }
+      }
+    },
+    "53": {
+      "keypoints": [],
+      "lines": [],
+      "rois": [],
+      "measurements": {
+        "distances": [],
+        "angles": []
+      },
+      "bounding_boxes": {
+        "10": {
+          "track_id": 10,
+          "det_id": 4079,
+          "name": "Opp",
+          "action": "defense"
+        },
+        "1": {
+          "track_id": 1,
+          "det_id": 4107,
+          "name": "lebron",
+          "action": "running"
+        }
+      }
     },
     "54": {
-      "frame": 54,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -920,11 +911,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "55": {
-      "frame": 55,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -939,11 +928,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "56": {
-      "frame": 56,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -958,11 +945,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "57": {
-      "frame": 57,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -977,11 +962,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "58": {
-      "frame": 58,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -996,11 +979,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "59": {
-      "frame": 59,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1015,11 +996,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "60": {
-      "frame": 60,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1034,11 +1013,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "61": {
-      "frame": 61,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1053,11 +1030,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "62": {
-      "frame": 62,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1072,11 +1047,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "63": {
-      "frame": 63,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1091,11 +1064,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "64": {
-      "frame": 64,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1110,11 +1081,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "65": {
-      "frame": 65,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1129,11 +1098,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "66": {
-      "frame": 66,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1148,11 +1115,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "67": {
-      "frame": 67,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1167,11 +1132,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "68": {
-      "frame": 68,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1186,11 +1149,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "69": {
-      "frame": 69,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1205,11 +1166,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "70": {
-      "frame": 70,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1224,11 +1183,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "71": {
-      "frame": 71,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1243,11 +1200,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "72": {
-      "frame": 72,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1262,11 +1217,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "73": {
-      "frame": 73,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1281,11 +1234,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "74": {
-      "frame": 74,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1300,11 +1251,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "75": {
-      "frame": 75,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1319,11 +1268,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "76": {
-      "frame": 76,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1338,11 +1285,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "77": {
-      "frame": 77,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1357,11 +1302,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "78": {
-      "frame": 78,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1376,11 +1319,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "79": {
-      "frame": 79,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1395,11 +1336,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "80": {
-      "frame": 80,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1414,11 +1353,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "81": {
-      "frame": 81,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1433,11 +1370,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "82": {
-      "frame": 82,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1452,11 +1387,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "83": {
-      "frame": 83,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1471,11 +1404,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "84": {
-      "frame": 84,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1490,11 +1421,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "85": {
-      "frame": 85,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1509,11 +1438,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "86": {
-      "frame": 86,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1528,11 +1455,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "87": {
-      "frame": 87,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1547,11 +1472,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "88": {
-      "frame": 88,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1566,11 +1489,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "89": {
-      "frame": 89,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1585,11 +1506,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "90": {
-      "frame": 90,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1604,11 +1523,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "91": {
-      "frame": 91,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1623,11 +1540,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "92": {
-      "frame": 92,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1642,11 +1557,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "93": {
-      "frame": 93,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1661,11 +1574,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "94": {
-      "frame": 94,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1680,11 +1591,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "95": {
-      "frame": 95,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1699,8 +1608,7 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "96": {
       "frame": 96,
@@ -1717,9 +1625,15 @@
           "det_id": 7034,
           "name": "Opp",
           "action": "defense"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 7018,
+          "name": "dirk",
+          "action": "hanging"
         }
       },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      "video_id": "637a186ea4e1478f86979b54b6666da3"
     },
     "97": {
       "frame": 97,
@@ -1736,9 +1650,15 @@
           "det_id": 7083,
           "name": "Opp",
           "action": "defense"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 7075,
+          "name": "dirk",
+          "action": "hanging"
         }
       },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      "video_id": "637a186ea4e1478f86979b54b6666da3"
     },
     "98": {
       "frame": 98,
@@ -1755,9 +1675,15 @@
           "det_id": 7163,
           "name": "Opp",
           "action": "defense"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 7133,
+          "name": "dirk",
+          "action": "hanging"
         }
       },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      "video_id": "637a186ea4e1478f86979b54b6666da3"
     },
     "99": {
       "frame": 99,
@@ -1774,12 +1700,17 @@
           "det_id": 7195,
           "name": "Opp",
           "action": "defense"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 7190,
+          "name": "dirk",
+          "action": "hanging"
         }
       },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      "video_id": "637a186ea4e1478f86979b54b6666da3"
     },
     "100": {
-      "frame": 100,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1788,17 +1719,21 @@
         "angles": []
       },
       "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 7250,
+          "name": "lebron",
+          "action": "defense"
+        },
         "10": {
           "track_id": 10,
           "det_id": 7254,
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "101": {
-      "frame": 101,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1807,17 +1742,21 @@
         "angles": []
       },
       "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 7304,
+          "name": "lebron",
+          "action": "defense"
+        },
         "10": {
           "track_id": 10,
           "det_id": 7309,
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "102": {
-      "frame": 102,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1826,17 +1765,21 @@
         "angles": []
       },
       "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 7362,
+          "name": "lebron",
+          "action": "defense"
+        },
         "10": {
           "track_id": 10,
           "det_id": 7367,
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "103": {
-      "frame": 103,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1845,17 +1788,21 @@
         "angles": []
       },
       "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 7415,
+          "name": "lebron",
+          "action": "defense"
+        },
         "10": {
           "track_id": 10,
           "det_id": 7416,
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "104": {
-      "frame": 104,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1864,17 +1811,21 @@
         "angles": []
       },
       "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 7471,
+          "name": "lebron",
+          "action": "defense"
+        },
         "10": {
           "track_id": 10,
           "det_id": 7474,
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "105": {
-      "frame": 105,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1883,17 +1834,21 @@
         "angles": []
       },
       "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 7529,
+          "name": "lebron",
+          "action": "defense"
+        },
         "10": {
           "track_id": 10,
           "det_id": 7530,
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "106": {
-      "frame": 106,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1902,17 +1857,21 @@
         "angles": []
       },
       "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 7588,
+          "name": "lebron",
+          "action": "defense"
+        },
         "10": {
           "track_id": 10,
           "det_id": 7591,
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "107": {
-      "frame": 107,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1921,17 +1880,21 @@
         "angles": []
       },
       "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 7644,
+          "name": "lebron",
+          "action": "defense"
+        },
         "10": {
           "track_id": 10,
           "det_id": 7648,
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "108": {
-      "frame": 108,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1940,17 +1903,21 @@
         "angles": []
       },
       "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 7705,
+          "name": "lebron",
+          "action": "defense"
+        },
         "10": {
           "track_id": 10,
           "det_id": 7709,
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "109": {
-      "frame": 109,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1959,17 +1926,21 @@
         "angles": []
       },
       "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 7764,
+          "name": "lebron",
+          "action": "defense"
+        },
         "10": {
           "track_id": 10,
           "det_id": 7768,
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "110": {
-      "frame": 110,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1978,17 +1949,21 @@
         "angles": []
       },
       "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 7824,
+          "name": "lebron",
+          "action": "defense"
+        },
         "10": {
           "track_id": 10,
           "det_id": 7829,
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "111": {
-      "frame": 111,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -1997,17 +1972,21 @@
         "angles": []
       },
       "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 7881,
+          "name": "lebron",
+          "action": "defense"
+        },
         "10": {
           "track_id": 10,
           "det_id": 7886,
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "112": {
-      "frame": 112,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2016,17 +1995,21 @@
         "angles": []
       },
       "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 7942,
+          "name": "lebron",
+          "action": "defense"
+        },
         "10": {
           "track_id": 10,
           "det_id": 7944,
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "113": {
-      "frame": 113,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2035,17 +2018,21 @@
         "angles": []
       },
       "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 8004,
+          "name": "lebron",
+          "action": "defense"
+        },
         "10": {
           "track_id": 10,
           "det_id": 8012,
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "114": {
-      "frame": 114,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2054,17 +2041,21 @@
         "angles": []
       },
       "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 8066,
+          "name": "lebron",
+          "action": "defense"
+        },
         "10": {
           "track_id": 10,
           "det_id": 8074,
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "115": {
-      "frame": 115,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2073,17 +2064,21 @@
         "angles": []
       },
       "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 8129,
+          "name": "lebron",
+          "action": "defense"
+        },
         "10": {
           "track_id": 10,
           "det_id": 8135,
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "116": {
-      "frame": 116,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2092,17 +2087,21 @@
         "angles": []
       },
       "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 8193,
+          "name": "lebron",
+          "action": "defense"
+        },
         "10": {
           "track_id": 10,
           "det_id": 8201,
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "117": {
-      "frame": 117,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2111,17 +2110,21 @@
         "angles": []
       },
       "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 8256,
+          "name": "lebron",
+          "action": "defense"
+        },
         "10": {
           "track_id": 10,
           "det_id": 8261,
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "118": {
-      "frame": 118,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2130,17 +2133,21 @@
         "angles": []
       },
       "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 8319,
+          "name": "lebron",
+          "action": "defense"
+        },
         "10": {
           "track_id": 10,
           "det_id": 8320,
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "119": {
-      "frame": 119,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2149,17 +2156,21 @@
         "angles": []
       },
       "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 8380,
+          "name": "lebron",
+          "action": "defense"
+        },
         "10": {
           "track_id": 10,
           "det_id": 8381,
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "120": {
-      "frame": 120,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2173,12 +2184,16 @@
           "det_id": 8440,
           "name": "Opp",
           "action": "defense"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 8442,
+          "name": "lebron",
+          "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "121": {
-      "frame": 121,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2187,17 +2202,21 @@
         "angles": []
       },
       "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 8499,
+          "name": "lebron",
+          "action": "defense"
+        },
         "10": {
           "track_id": 10,
           "det_id": 8502,
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "122": {
-      "frame": 122,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2211,12 +2230,16 @@
           "det_id": 8560,
           "name": "Opp",
           "action": "defense"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 8561,
+          "name": "lebron",
+          "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "123": {
-      "frame": 123,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2230,12 +2253,16 @@
           "det_id": 8620,
           "name": "Opp",
           "action": "defense"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 8623,
+          "name": "lebron",
+          "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "124": {
-      "frame": 124,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2244,17 +2271,21 @@
         "angles": []
       },
       "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 8685,
+          "name": "lebron",
+          "action": "defense"
+        },
         "10": {
           "track_id": 10,
           "det_id": 8697,
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "125": {
-      "frame": 125,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2263,17 +2294,21 @@
         "angles": []
       },
       "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 8743,
+          "name": "lebron",
+          "action": "defense"
+        },
         "10": {
           "track_id": 10,
           "det_id": 8749,
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "126": {
-      "frame": 126,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2282,17 +2317,21 @@
         "angles": []
       },
       "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 8809,
+          "name": "lebron",
+          "action": "defense"
+        },
         "10": {
           "track_id": 10,
           "det_id": 8826,
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "127": {
-      "frame": 127,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2301,17 +2340,21 @@
         "angles": []
       },
       "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 8871,
+          "name": "lebron",
+          "action": "defense"
+        },
         "10": {
           "track_id": 10,
           "det_id": 8878,
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "128": {
-      "frame": 128,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2325,12 +2368,16 @@
           "det_id": 8939,
           "name": "Opp",
           "action": "defense"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 8974,
+          "name": "lebron",
+          "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "129": {
-      "frame": 129,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2339,17 +2386,21 @@
         "angles": []
       },
       "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 9000,
+          "name": "lebron",
+          "action": "defense"
+        },
         "10": {
           "track_id": 10,
           "det_id": 9027,
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "130": {
-      "frame": 130,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2358,17 +2409,21 @@
         "angles": []
       },
       "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 9079,
+          "name": "lebron",
+          "action": "defense"
+        },
         "10": {
           "track_id": 10,
           "det_id": 9112,
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "131": {
-      "frame": 131,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2377,17 +2432,21 @@
         "angles": []
       },
       "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 9131,
+          "name": "lebron",
+          "action": "defense"
+        },
         "10": {
           "track_id": 10,
           "det_id": 9149,
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "132": {
-      "frame": 132,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2396,17 +2455,21 @@
         "angles": []
       },
       "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 9182,
+          "name": "lebron",
+          "action": "defense"
+        },
         "10": {
           "track_id": 10,
           "det_id": 9198,
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "133": {
-      "frame": 133,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2415,17 +2478,21 @@
         "angles": []
       },
       "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 9242,
+          "name": "lebron",
+          "action": "defense"
+        },
         "10": {
           "track_id": 10,
           "det_id": 9257,
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "134": {
-      "frame": 134,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2434,17 +2501,21 @@
         "angles": []
       },
       "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 9304,
+          "name": "lebron",
+          "action": "defense"
+        },
         "10": {
           "track_id": 10,
           "det_id": 9325,
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "135": {
-      "frame": 135,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2453,17 +2524,21 @@
         "angles": []
       },
       "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 9369,
+          "name": "lebron",
+          "action": "defense"
+        },
         "10": {
           "track_id": 10,
           "det_id": 9385,
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "136": {
-      "frame": 136,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2472,17 +2547,21 @@
         "angles": []
       },
       "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 9427,
+          "name": "lebron",
+          "action": "defense"
+        },
         "10": {
           "track_id": 10,
           "det_id": 9451,
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "137": {
-      "frame": 137,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2491,17 +2570,21 @@
         "angles": []
       },
       "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 9498,
+          "name": "lebron",
+          "action": "defense"
+        },
         "10": {
           "track_id": 10,
           "det_id": 9526,
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "138": {
-      "frame": 138,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2510,17 +2593,21 @@
         "angles": []
       },
       "bounding_boxes": {
+        "108": {
+          "track_id": 108,
+          "det_id": 9563,
+          "name": "lebron",
+          "action": "defense"
+        },
         "10": {
           "track_id": 10,
           "det_id": 9582,
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "139": {
-      "frame": 139,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2534,12 +2621,16 @@
           "det_id": 9626,
           "name": "Opp",
           "action": "defense"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 9644,
+          "name": "lebron",
+          "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "140": {
-      "frame": 140,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2553,12 +2644,16 @@
           "det_id": 9682,
           "name": "Opp",
           "action": "defense"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 9725,
+          "name": "lebron",
+          "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "141": {
-      "frame": 141,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2572,12 +2667,16 @@
           "det_id": 9728,
           "name": "Opp",
           "action": "defense"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 9764,
+          "name": "lebron",
+          "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "142": {
-      "frame": 142,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2591,12 +2690,16 @@
           "det_id": 9788,
           "name": "Opp",
           "action": "defense"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 9798,
+          "name": "lebron",
+          "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "143": {
-      "frame": 143,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2610,12 +2713,16 @@
           "det_id": 9851,
           "name": "Opp",
           "action": "defense"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 9864,
+          "name": "lebron",
+          "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "144": {
-      "frame": 144,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2629,12 +2736,16 @@
           "det_id": 9911,
           "name": "Opp",
           "action": "defense"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 9945,
+          "name": "lebron",
+          "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "145": {
-      "frame": 145,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2648,12 +2759,16 @@
           "det_id": 9974,
           "name": "Opp",
           "action": "defense"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 9992,
+          "name": "lebron",
+          "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "146": {
-      "frame": 146,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2667,12 +2782,16 @@
           "det_id": 10034,
           "name": "Opp",
           "action": "defense"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 10055,
+          "name": "lebron",
+          "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "147": {
-      "frame": 147,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2686,12 +2805,16 @@
           "det_id": 10092,
           "name": "Opp",
           "action": "defense"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 10120,
+          "name": "lebron",
+          "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "148": {
-      "frame": 148,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2705,12 +2828,16 @@
           "det_id": 10151,
           "name": "Opp",
           "action": "defense"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 10168,
+          "name": "lebron",
+          "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "149": {
-      "frame": 149,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2724,12 +2851,16 @@
           "det_id": 10210,
           "name": "Opp",
           "action": "defense"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 10221,
+          "name": "lebron",
+          "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "150": {
-      "frame": 150,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2743,12 +2874,16 @@
           "det_id": 10269,
           "name": "Opp",
           "action": "defense"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 10281,
+          "name": "lebron",
+          "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "151": {
-      "frame": 151,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2762,12 +2897,16 @@
           "det_id": 10333,
           "name": "Opp",
           "action": "defense"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 10345,
+          "name": "lebron",
+          "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "152": {
-      "frame": 152,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2781,12 +2920,16 @@
           "det_id": 10396,
           "name": "Opp",
           "action": "defense"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 10401,
+          "name": "lebron",
+          "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "153": {
-      "frame": 153,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2801,11 +2944,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "154": {
-      "frame": 154,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2819,12 +2960,16 @@
           "det_id": 10510,
           "name": "Opp",
           "action": "defense"
+        },
+        "108": {
+          "track_id": 108,
+          "det_id": 10540,
+          "name": "lebron",
+          "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "155": {
-      "frame": 155,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2839,11 +2984,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "156": {
-      "frame": 156,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2858,11 +3001,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "157": {
-      "frame": 157,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2877,11 +3018,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "158": {
-      "frame": 158,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2896,11 +3035,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "159": {
-      "frame": 159,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2915,11 +3052,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "160": {
-      "frame": 160,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2934,11 +3069,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "161": {
-      "frame": 161,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2953,11 +3086,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "162": {
-      "frame": 162,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2972,11 +3103,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "163": {
-      "frame": 163,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -2991,11 +3120,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "164": {
-      "frame": 164,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3010,11 +3137,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "165": {
-      "frame": 165,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3029,11 +3154,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "166": {
-      "frame": 166,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3048,11 +3171,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "167": {
-      "frame": 167,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3067,11 +3188,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "168": {
-      "frame": 168,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3086,11 +3205,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "169": {
-      "frame": 169,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3105,11 +3222,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "170": {
-      "frame": 170,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3124,11 +3239,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "171": {
-      "frame": 171,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3143,11 +3256,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "172": {
-      "frame": 172,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3162,11 +3273,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "173": {
-      "frame": 173,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3181,11 +3290,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "174": {
-      "frame": 174,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3200,11 +3307,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "175": {
-      "frame": 175,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3219,11 +3324,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "176": {
-      "frame": 176,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3238,11 +3341,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "177": {
-      "frame": 177,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3257,11 +3358,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "178": {
-      "frame": 178,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3276,11 +3375,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "179": {
-      "frame": 179,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3295,11 +3392,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "180": {
-      "frame": 180,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3314,11 +3409,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "181": {
-      "frame": 181,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3333,11 +3426,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "182": {
-      "frame": 182,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3352,11 +3443,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "183": {
-      "frame": 183,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3371,11 +3460,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "184": {
-      "frame": 184,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3390,11 +3477,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "185": {
-      "frame": 185,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3409,11 +3494,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "186": {
-      "frame": 186,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3428,11 +3511,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "187": {
-      "frame": 187,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3447,11 +3528,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "188": {
-      "frame": 188,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3466,11 +3545,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "189": {
-      "frame": 189,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3485,11 +3562,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "190": {
-      "frame": 190,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3504,11 +3579,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "191": {
-      "frame": 191,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3523,11 +3596,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "192": {
-      "frame": 192,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3542,11 +3613,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "193": {
-      "frame": 193,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3561,11 +3630,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "194": {
-      "frame": 194,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3580,11 +3647,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "195": {
-      "frame": 195,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3599,11 +3664,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "196": {
-      "frame": 196,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3618,11 +3681,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "197": {
-      "frame": 197,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3637,11 +3698,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "198": {
-      "frame": 198,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3656,11 +3715,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "199": {
-      "frame": 199,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3675,11 +3732,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "200": {
-      "frame": 200,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3694,11 +3749,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "201": {
-      "frame": 201,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3713,11 +3766,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "202": {
-      "frame": 202,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3732,11 +3783,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "203": {
-      "frame": 203,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3751,11 +3800,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "204": {
-      "frame": 204,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3770,11 +3817,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "205": {
-      "frame": 205,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3789,11 +3834,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "206": {
-      "frame": 206,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3808,11 +3851,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "207": {
-      "frame": 207,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3827,11 +3868,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "208": {
-      "frame": 208,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3846,11 +3885,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "209": {
-      "frame": 209,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3865,11 +3902,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "210": {
-      "frame": 210,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3884,11 +3919,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "211": {
-      "frame": 211,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3903,11 +3936,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "212": {
-      "frame": 212,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3922,11 +3953,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "213": {
-      "frame": 213,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3941,11 +3970,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "214": {
-      "frame": 214,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3960,11 +3987,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "215": {
-      "frame": 215,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3979,11 +4004,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "216": {
-      "frame": 216,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -3998,11 +4021,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "217": {
-      "frame": 217,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -4017,11 +4038,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "218": {
-      "frame": 218,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -4036,11 +4055,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "219": {
-      "frame": 219,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -4055,11 +4072,9 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     },
     "223": {
-      "frame": 223,
       "keypoints": [],
       "lines": [],
       "rois": [],
@@ -4074,8 +4089,7 @@
           "name": "Opp",
           "action": "defense"
         }
-      },
-      "video_id": "49f9abe22fec44c18f19e58faf32435e"
+      }
     }
   }
 }
