@@ -447,14 +447,8 @@ def get_video_info(video_path: Path) -> Dict[str, Any]:
     }
 
 
-def load_keypoints_tracks(jsonl_path: Path) -> Dict[int, List[Dict[str, Any]]]:
-    """
-    Load keypoints_tracks.jsonl file.
-    Expected format: one JSON object per line with 'frame', 'track_id', 'bbox', 'keypoints', etc.
-    bbox format: [x1, y1, x2, y2]
-    keypoints format: [x1, y1, conf1, x2, y2, conf2, ...] (17 keypoints = 51 values)
-    Returns: {frame_index: [detections]}
-    """
+def _load_keypoints_tracks_jsonl(jsonl_path: Path) -> Dict[int, List[Dict[str, Any]]]:
+    """Load tracks from JSONL: one detection per line."""
     tracks_by_frame = {}
     
     if not jsonl_path.exists():
@@ -496,6 +490,103 @@ def load_keypoints_tracks(jsonl_path: Path) -> Dict[int, List[Dict[str, Any]]]:
     return tracks_by_frame
 
 
+def _load_keypoints_tracks_pt(pt_path: Path) -> Dict[int, List[Dict[str, Any]]]:
+    """
+    Load tracks from a Torch .pt file with fields:
+    id, frame_idx, bb_left, bb_top, bb_width, bb_height, pred_2d.
+    """
+    if not pt_path.exists():
+        logger.warning(f"Keypoints tracks file not found: {pt_path}")
+        return {}
+
+    try:
+        import torch
+    except Exception as exc:
+        raise RuntimeError("PyTorch is required to read .pt tracks files") from exc
+
+    logger.info(f"Loading keypoints from: {pt_path}")
+    raw = torch.load(str(pt_path), map_location="cpu")
+    if not isinstance(raw, dict):
+        raise ValueError("Expected .pt payload to be a dictionary")
+
+    required = ("id", "frame_idx", "bb_left", "bb_top", "bb_width", "bb_height", "pred_2d")
+    missing = [field for field in required if field not in raw]
+    if missing:
+        raise ValueError(f".pt file is missing required fields: {', '.join(missing)}")
+
+    ids = torch.as_tensor(raw["id"]).reshape(-1)
+    frames = torch.as_tensor(raw["frame_idx"]).reshape(-1)
+    bb_left = torch.as_tensor(raw["bb_left"]).reshape(-1)
+    bb_top = torch.as_tensor(raw["bb_top"]).reshape(-1)
+    bb_width = torch.as_tensor(raw["bb_width"]).reshape(-1)
+    bb_height = torch.as_tensor(raw["bb_height"]).reshape(-1)
+    pred_2d = torch.as_tensor(raw["pred_2d"])
+
+    num_rows = int(ids.shape[0])
+    if any(int(t.shape[0]) != num_rows for t in (frames, bb_left, bb_top, bb_width, bb_height)):
+        raise ValueError(".pt fields must all have the same number of rows")
+    if pred_2d.ndim != 3 or int(pred_2d.shape[0]) != num_rows or int(pred_2d.shape[2]) != 2:
+        raise ValueError("pred_2d must have shape [N, K, 2]")
+
+    tracks_by_frame: Dict[int, List[Dict[str, Any]]] = {}
+    det_ids_by_frame: Dict[int, int] = {}
+
+    for idx in range(num_rows):
+        frame_index = int(frames[idx].item())
+        track_id = int(ids[idx].item())
+
+        x1 = float(bb_left[idx].item())
+        y1 = float(bb_top[idx].item())
+        width = float(bb_width[idx].item())
+        height = float(bb_height[idx].item())
+        bbox = [x1, y1, x1 + width, y1 + height]
+
+        det_id = det_ids_by_frame.get(frame_index, 0)
+        det_ids_by_frame[frame_index] = det_id + 1
+
+        keypoints = []
+        for point in pred_2d[idx].tolist():
+            keypoints.extend([float(point[0]), float(point[1]), 1.0])
+
+        record = {
+            "frame": frame_index,
+            "track_id": track_id,
+            "det_id": det_id,
+            "bbox": bbox,
+            "score": 1.0,
+            "keypoints": keypoints,
+        }
+        tracks_by_frame.setdefault(frame_index, []).append(record)
+
+    logger.info(f"Loaded keypoints from PT: {num_rows} detections across {len(tracks_by_frame)} frames")
+    return tracks_by_frame
+
+
+def write_keypoints_tracks_jsonl(
+    tracks_by_frame: Dict[int, List[Dict[str, Any]]],
+    jsonl_path: Path,
+) -> None:
+    """Persist normalized tracks as JSONL for downstream save/load paths."""
+    with jsonl_path.open("w", encoding="utf-8") as f:
+        for frame_index in sorted(tracks_by_frame.keys()):
+            for record in tracks_by_frame.get(frame_index, []):
+                f.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+
+def load_keypoints_tracks(path: Path) -> Dict[int, List[Dict[str, Any]]]:
+    """
+    Load keypoints tracks from .jsonl or .pt.
+    Returns: {frame_index: [detections]}
+    """
+    suffix = path.suffix.lower()
+    if suffix == ".jsonl":
+        return _load_keypoints_tracks_jsonl(path)
+    if suffix == ".pt":
+        return _load_keypoints_tracks_pt(path)
+    logger.warning(f"Unsupported keypoints tracks format for {path}")
+    return {}
+
+
 @app.post("/upload")
 async def upload_file(
     request: Request,
@@ -504,7 +595,7 @@ async def upload_file(
 ) -> JSONResponse:
     logger.info(f"Upload request received: video_file={video_file.filename}, keypoints_file={keypoints_file.filename if keypoints_file else None}")
     """
-    Upload a video file and optional keypoints_tracks.jsonl file.
+    Upload a video file and optional tracks file (.jsonl or .pt).
     """
     if not video_file.filename:
         raise HTTPException(status_code=400, detail="Video filename is required.")
@@ -552,6 +643,7 @@ async def upload_file(
     
     # Load keypoints tracks if provided
     keypoints_tracks = {}
+    keypoints_source_format = "none"
     logger.info(f"Checking keypoints_file: {keypoints_file}, filename: {keypoints_file.filename if keypoints_file else None}")
     
     if keypoints_file is not None and keypoints_file.filename:
@@ -559,30 +651,40 @@ async def upload_file(
         try:
             file_size = keypoints_file.size if hasattr(keypoints_file, 'size') else 'unknown'
             logger.info(f"Received keypoints file: {keypoints_file.filename}, size: {file_size}")
-            
-            with keypoints_path.open("wb") as buffer:
+
+            keypoints_ext = Path(keypoints_file.filename).suffix.lower()
+            if keypoints_ext not in {".jsonl", ".pt"}:
+                raise HTTPException(status_code=400, detail="Unsupported tracks format. Use .jsonl or .pt")
+            keypoints_source_format = "pt" if keypoints_ext == ".pt" else "jsonl"
+
+            uploaded_keypoints_path = temp_root / f"keypoints_{video_id}{keypoints_ext}"
+            with uploaded_keypoints_path.open("wb") as buffer:
                 while True:
                     chunk = await keypoints_file.read(1024 * 1024)
                     if not chunk:
                         break
                     buffer.write(chunk)
-            
-            logger.info(f"Saved keypoints file to: {keypoints_path}, size: {keypoints_path.stat().st_size} bytes")
-            
-            if keypoints_path.stat().st_size == 0:
-                logger.warning(f"Keypoints file is empty!")
+
+            logger.info(f"Saved tracks file to: {uploaded_keypoints_path}, size: {uploaded_keypoints_path.stat().st_size} bytes")
+
+            if uploaded_keypoints_path.stat().st_size == 0:
+                logger.warning("Keypoints file is empty!")
             else:
-                # Verify file was written correctly
-                if not keypoints_path.exists() or keypoints_path.stat().st_size == 0:
-                    logger.error(f"Keypoints file was not saved correctly!")
+                keypoints_tracks = load_keypoints_tracks(uploaded_keypoints_path)
+                if keypoints_ext == ".pt":
+                    # Save a canonical JSONL copy so existing save/load/export paths remain unchanged.
+                    write_keypoints_tracks_jsonl(keypoints_tracks, keypoints_path)
+                elif uploaded_keypoints_path != keypoints_path:
+                    shutil.copy2(uploaded_keypoints_path, keypoints_path)
+
+                logger.info(f"Loaded keypoints tracks: {len(keypoints_tracks)} frames with tracks")
+                if len(keypoints_tracks) > 0:
+                    sample_frame = list(keypoints_tracks.keys())[0]
+                    logger.info(f"Sample frame {sample_frame} has {len(keypoints_tracks[sample_frame])} tracks")
                 else:
-                    keypoints_tracks = load_keypoints_tracks(keypoints_path)
-                    logger.info(f"Loaded keypoints tracks: {len(keypoints_tracks)} frames with tracks")
-                    if len(keypoints_tracks) > 0:
-                        sample_frame = list(keypoints_tracks.keys())[0]
-                        logger.info(f"Sample frame {sample_frame} has {len(keypoints_tracks[sample_frame])} tracks")
-                    else:
-                        logger.warning(f"No tracks loaded from keypoints file - file may be empty or malformed")
+                    logger.warning("No tracks loaded from keypoints file - file may be empty or malformed")
+        except HTTPException:
+            raise
         except Exception as exc:
             logger.error(f"Error loading keypoints tracks: {exc}", exc_info=True)
             import traceback
@@ -605,6 +707,7 @@ async def upload_file(
             "video_filename": video_file.filename,
             "total_frames": len(frames),
             "has_keypoints": len(keypoints_tracks) > 0,
+            "keypoints_source_format": keypoints_source_format,
         },
     }
     
@@ -1032,6 +1135,34 @@ async def save_annotations(
     # Get video_id and original filename from payload
     video_id = payload_data.get("video_id")
     original_filename = _safe_filename(payload_data.get("original_filename", ""))
+    payload_metadata = payload_data.get("metadata", {})
+    if not isinstance(payload_metadata, dict):
+        payload_metadata = {}
+    keypoints_source_format = payload_metadata.get("keypoints_source_format")
+    if keypoints_source_format not in {"pt", "jsonl", "none"}:
+        keypoints_source_format = None
+
+    if keypoints_source_format is None and video_id:
+        if (temp_root / f"keypoints_{video_id}.pt").exists():
+            keypoints_source_format = "pt"
+        elif (temp_root / f"keypoints_{video_id}.jsonl").exists():
+            keypoints_source_format = "jsonl"
+
+    if keypoints_source_format is None:
+        existing_metadata = load_study(study_root, study_id) or {}
+        existing_source_format = existing_metadata.get("keypoints_source_format")
+        if existing_source_format in {"pt", "jsonl", "none"}:
+            keypoints_source_format = existing_source_format
+
+    if keypoints_source_format is None:
+        keypoints_source_format = "none"
+
+    study_metadata = {
+        "original_filename": original_filename,
+        "study_id": study_id,
+        "keypoints_source_format": keypoints_source_format,
+    }
+
     source_study_id = payload_data.get("source_study_id")
     if source_study_id:
         source_study_id = _safe_study_id(source_study_id)
@@ -1085,10 +1216,14 @@ async def save_annotations(
             except Exception as e:
                 logger.warning(f"Failed to copy keypoints file to study folder: {e}")
         if not copied and source_study_id:
-            source_keypoints = study_root / source_study_id / "keypoints_tracks.jsonl"
-            if source_keypoints.exists():
+            source_keypoints = _find_keypoints_file(study_root / source_study_id)
+            if source_keypoints and source_keypoints.exists():
                 try:
-                    shutil.copy2(source_keypoints, study_keypoints_path)
+                    if source_keypoints.suffix.lower() == ".pt":
+                        source_tracks = load_keypoints_tracks(source_keypoints)
+                        write_keypoints_tracks_jsonl(source_tracks, study_keypoints_path)
+                    else:
+                        shutil.copy2(source_keypoints, study_keypoints_path)
                     copied = True
                     logger.info(f"Copied keypoints file from source study: {study_keypoints_path}")
                 except Exception as e:
@@ -1333,7 +1468,7 @@ async def save_annotations(
         # Also save metadata file with original video filename
         metadata_path = study_dir / f"{study_id}_metadata.json"
         with metadata_path.open("w", encoding="utf-8") as f:
-            json.dump({"original_filename": original_filename, "study_id": study_id}, f, indent=2)
+            json.dump(study_metadata, f, indent=2)
     else:
         # Case 2: No keypoints_tracks file - save frame annotations (keypoints, lines, ROIs, distances, angles)
         lines_written = 0
@@ -1398,7 +1533,7 @@ async def save_annotations(
     # Also save metadata file with original video filename
     metadata_path = study_dir / f"{study_id}_metadata.json"
     with metadata_path.open("w", encoding="utf-8") as f:
-        json.dump({"original_filename": original_filename, "study_id": study_id}, f, indent=2)
+        json.dump(study_metadata, f, indent=2)
     
     logger.info(f"Study {study_id} saved successfully")
     
@@ -1453,8 +1588,11 @@ def _find_keypoints_file(study_dir: Path) -> Optional[Path]:
     candidate = study_dir / "keypoints_tracks.jsonl"
     if candidate.exists():
         return candidate
+    candidate_pt = study_dir / "keypoints_tracks.pt"
+    if candidate_pt.exists():
+        return candidate_pt
     for f in study_dir.iterdir():
-        if f.suffix.lower() == ".jsonl" and "keypoints" in f.name.lower():
+        if f.suffix.lower() in {".jsonl", ".pt"} and "keypoints" in f.name.lower():
             return f
     return None
 
@@ -1821,6 +1959,9 @@ async def get_study(request: Request, study_id: str) -> JSONResponse:
         original_filename = _safe_filename(metadata.get("original_filename", ""))
     except HTTPException:
         original_filename = ""
+    keypoints_source_format = metadata.get("keypoints_source_format")
+    if keypoints_source_format not in {"pt", "jsonl", "none"}:
+        keypoints_source_format = "none"
     
     # Find and copy video file to temp
     video_path = None
@@ -1880,17 +2021,21 @@ async def get_study(request: Request, study_id: str) -> JSONResponse:
     has_keypoints = False
     
     # Look for keypoints file in study folder (might be named differently)
-    keypoints_source = study_dir / "keypoints_tracks.jsonl"
-    if not keypoints_source.exists():
-        for f in study_dir.iterdir():
-            if f.suffix.lower() == ".jsonl" and "keypoints" in f.name.lower():
-                keypoints_source = f
-                break
-    if keypoints_source.exists():
+    keypoints_source = _find_keypoints_file(study_dir)
+    if keypoints_source and keypoints_source.exists():
         keypoints_path = temp_root / f"keypoints_{video_id}.jsonl"
         try:
-            shutil.copy2(keypoints_source, keypoints_path)
-            keypoints_tracks = load_keypoints_tracks(keypoints_path)
+            if keypoints_source.suffix.lower() == ".pt":
+                keypoints_source_format = "pt"
+                temp_pt_path = temp_root / f"keypoints_{video_id}.pt"
+                shutil.copy2(keypoints_source, temp_pt_path)
+                keypoints_tracks = load_keypoints_tracks(temp_pt_path)
+                write_keypoints_tracks_jsonl(keypoints_tracks, keypoints_path)
+            else:
+                if keypoints_source_format == "none":
+                    keypoints_source_format = "jsonl"
+                shutil.copy2(keypoints_source, keypoints_path)
+                keypoints_tracks = load_keypoints_tracks(keypoints_path)
             has_keypoints = len(keypoints_tracks) > 0
             logger.info(f"Copied keypoints file to temp: {keypoints_path}")
         except Exception as e:
@@ -1909,6 +2054,7 @@ async def get_study(request: Request, study_id: str) -> JSONResponse:
             "video_filename": original_filename,
             "total_frames": total_frames,
             "has_keypoints": has_keypoints,
+            "keypoints_source_format": keypoints_source_format,
         },
     }
     
@@ -1924,6 +2070,7 @@ async def get_study(request: Request, study_id: str) -> JSONResponse:
             "video_filename": original_filename,
             "total_frames": total_frames,
             "has_keypoints": has_keypoints,
+            "keypoints_source_format": keypoints_source_format,
         },
     }
     

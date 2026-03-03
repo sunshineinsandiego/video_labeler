@@ -931,9 +931,12 @@ function drawBoundingBoxes() {
       ctx.fillText(label, labelX + padding, labelY + padding);
     }
     
+    const hideTrackKeypoints = state.metadata?.keypoints_source_format === "pt";
+
     // Draw keypoints and skeleton if available (format: [x1, y1, conf1, x2, y2, conf2, ...])
+    // PT uploads keep track/bbox rendering but suppress keypoint/skeleton rendering.
     const keypoints = track.keypoints || track.kpts || [];
-    if (keypoints.length > 0) {
+    if (!hideTrackKeypoints && keypoints.length > 0) {
       const kpThreshold = 0.01; // Minimum confidence to draw keypoint
       const kpRadius = 3 / state.zoom;
       const kpThickness = 2 / state.zoom;
