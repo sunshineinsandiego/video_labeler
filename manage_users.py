@@ -70,6 +70,15 @@ def reset_password(email: str, password: str) -> None:
             raise SystemExit(f"User not found: {email}")
 
 
+def delete_user(email: str) -> None:
+    email = _normalize_email(email)
+    with _connect() as conn:
+        cur = conn.execute("DELETE FROM users WHERE email = ?", (email,))
+        conn.commit()
+        if cur.rowcount == 0:
+            raise SystemExit(f"User not found: {email}")
+
+
 def list_users() -> None:
     with _connect() as conn:
         cur = conn.execute(
@@ -100,6 +109,12 @@ def parse_args() -> argparse.Namespace:
     reset_cmd.add_argument("--email", required=True)
     reset_cmd.add_argument("--password", required=True)
 
+    delete_cmd = sub.add_parser(
+        "delete-user",
+        help="Remove a user from the database (does not delete study files on disk)",
+    )
+    delete_cmd.add_argument("--email", required=True)
+
     sub.add_parser("list", help="List users")
 
     return parser.parse_args()
@@ -118,6 +133,10 @@ def main() -> None:
     if args.command == "reset-password":
         reset_password(args.email, args.password)
         print(f"Password reset: {args.email}")
+        return
+    if args.command == "delete-user":
+        delete_user(args.email)
+        print(f"User deleted: {args.email}")
         return
     if args.command == "list":
         list_users()

@@ -2,10 +2,10 @@
 const canvas = document.getElementById("image-canvas");
 const ctx = canvas.getContext("2d");
 const videoInput = document.getElementById("video-input");
-const keypointsInput = document.getElementById("keypoints-input");
+const tracksInput = document.getElementById("tracks-input");
 const uploadBtn = document.getElementById("upload-btn");
 const videoFileInfo = document.getElementById("video-file-info");
-const keypointsFileInfo = document.getElementById("keypoints-file-info");
+const tracksFileInfo = document.getElementById("tracks-file-info");
 const metadataOutput = document.getElementById("metadata-output");
 const keypointList = document.getElementById("keypoint-list");
 const lineList = document.getElementById("line-list");
@@ -238,15 +238,19 @@ window.addEventListener("resize", fitCanvas);
 async function uploadVideo() {
   console.log("[uploadVideo] Function called");
   const videoFile = videoInput.files[0];
-  const keypointsFile = keypointsInput.files[0];
+  const tracksFile = tracksInput.files[0];
   
   if (!videoFile) {
     alert("Please select a video file first.");
     return;
   }
+  if (!tracksFile) {
+    alert("Please select a MOT tracks .txt file (CoMotion export).");
+    return;
+  }
   
   console.log(`[uploadVideo] Video file: ${videoFile.name}, size: ${videoFile.size}`);
-  console.log(`[uploadVideo] Keypoints file: ${keypointsFile ? keypointsFile.name + ', size: ' + keypointsFile.size : 'none'}`);
+  console.log(`[uploadVideo] Tracks file: ${tracksFile.name}, size: ${tracksFile.size}`);
   
   // Disable upload button during upload
   const uploadBtnText = document.getElementById("upload-btn-text");
@@ -278,12 +282,7 @@ async function uploadVideo() {
   
   const form = new FormData();
   form.append("video_file", videoFile);
-  if (keypointsFile) {
-    console.log(`[uploadVideo] Adding keypoints file to form: ${keypointsFile.name}`);
-    form.append("keypoints_file", keypointsFile);
-  } else {
-    console.log(`[uploadVideo] No keypoints file selected - video will be uploaded without tracks`);
-  }
+  form.append("tracks_txt_file", tracksFile);
   
   try {
     // Use XMLHttpRequest for progress tracking
@@ -580,9 +579,20 @@ async function loadFrameAnnotations(frameIndex) {
     resetAnnotations();
     return;
   }
-  
+  if (!state.videoId) {
+    console.warn("[loadFrameAnnotations] Missing video_id; cannot GET annotations from server.");
+    resetAnnotations();
+    return;
+  }
+
   try {
-    const res = await fetch(`/study/${encodeURIComponent(studyIdToUse)}/frame/${frameIndex}/annotations`);
+    const qs = new URLSearchParams({ video_id: state.videoId });
+    const url = `/study/${encodeURIComponent(studyIdToUse)}/frame/${frameIndex}/annotations?${qs.toString()}`;
+    let res = await fetch(url);
+    if (res.status === 404) {
+      await saveCurrentFrameAnnotations();
+      res = await fetch(url);
+    }
     if (res.ok) {
       const data = await res.json();
       // Load annotations from temp file (these persist across frame navigation)
@@ -623,9 +633,17 @@ async function loadFrameAnnotations(frameIndex) {
             det_id: resolvedDetId,
             name: bboxData.name || null,
             action: bboxData.action || null,
-            annotations: bboxData.annotations || null,
+            annotations: bboxData.annotations || emptyManualAnnotations(),
           };
         }
+      }
+      if (state.selectedTrackId && state.boundingBoxes[state.selectedTrackId]) {
+        loadSelectedTrackAnnotationsIntoCanvas();
+      } else if (!state.selectedTrackId) {
+        state.keypoints = [];
+        state.lines = [];
+        state.rois = [];
+        state.measurements = { distances: [], angles: [] };
       }
       
       state.nextKeypointIndex = (state.keypoints?.length || 0) + 1;
@@ -637,6 +655,11 @@ async function loadFrameAnnotations(frameIndex) {
       updateLists();
       updateBboxInfo();
     } else {
+      const errText = await res.text().catch(() => "");
+      console.warn(
+        `[loadFrameAnnotations] ${res.status} for frame ${frameIndex}:`,
+        errText || res.statusText
+      );
       resetAnnotations();
     }
   } catch (error) {
@@ -762,6 +785,25 @@ function updateBboxInfo() {
     if (playerNameInput) playerNameInput.value = "";
     if (actionInput) actionInput.value = "";
   }
+}
+
+function emptyManualAnnotations() {
+  return { keypoints: [], lines: [], rois: [], measurements: { distances: [], angles: [] } };
+}
+
+function loadSelectedTrackAnnotationsIntoCanvas() {
+  if (!state.selectedTrackId) return;
+  const bbox = state.boundingBoxes[state.selectedTrackId];
+  const manual = bbox?.annotations || emptyManualAnnotations();
+  state.keypoints = manual.keypoints || [];
+  state.lines = manual.lines || [];
+  state.rois = manual.rois || [];
+  state.measurements = manual.measurements || { distances: [], angles: [] };
+  state.nextKeypointIndex = (state.keypoints?.length || 0) + 1;
+  state.nextLineIndex = (state.lines?.length || 0) + 1;
+  state.nextRoiIndex = (state.rois?.length || 0) + 1;
+  state.nextDistanceIndex = (state.measurements.distances?.length || 0) + 1;
+  state.nextAngleIndex = (state.measurements.angles?.length || 0) + 1;
 }
 
 function findBoundingBoxAt(worldX, worldY) {
@@ -931,7 +973,7 @@ function drawBoundingBoxes() {
       ctx.fillText(label, labelX + padding, labelY + padding);
     }
     
-    const hideTrackKeypoints = state.metadata?.keypoints_source_format === "pt";
+    const hideTrackKeypoints = false;
 
     // Draw keypoints and skeleton if available (format: [x1, y1, conf1, x2, y2, conf2, ...])
     // PT uploads keep track/bbox rendering but suppress keypoint/skeleton rendering.
@@ -2167,7 +2209,7 @@ function onCanvasMouseDown(evt) {
       const trackId = clickedTrack.track_id || clickedTrack.id;
       state.selectedTrackId = trackId;
       if (!state.boundingBoxes[trackId]) {
-        state.boundingBoxes[trackId] = {};
+        state.boundingBoxes[trackId] = { annotations: emptyManualAnnotations() };
       }
       if (clickedTrack.track_id != null) {
         state.boundingBoxes[trackId].track_id = clickedTrack.track_id;
@@ -2175,6 +2217,11 @@ function onCanvasMouseDown(evt) {
       if (clickedTrack.det_id != null) {
         state.boundingBoxes[trackId].det_id = clickedTrack.det_id;
       }
+      if (!state.boundingBoxes[trackId].annotations) {
+        state.boundingBoxes[trackId].annotations = emptyManualAnnotations();
+      }
+      loadSelectedTrackAnnotationsIntoCanvas();
+      updateLists();
       updateBboxInfo();
       render();
       evt.preventDefault();
@@ -2563,15 +2610,27 @@ async function saveCurrentFrameAnnotations() {
   // Capture the frame index at the start to prevent race conditions
   const frameIndexToSave = state.currentFrameIndex;
   
-  // Create frame-specific bounding boxes object
-  // Only include bounding boxes that have labels (name or action)
+  // Create frame-specific bounding boxes object.
+  // Include rows with labels or per-track manual annotations.
   const frameBoundingBoxes = {};
   const frameTracks = state.keypointsTracks[frameIndexToSave] ||
     state.keypointsTracks[String(frameIndexToSave)] ||
     state.keypointsTracks[frameIndexToSave?.toString?.()] ||
     [];
   for (const [trackId, bboxData] of Object.entries(state.boundingBoxes)) {
-    if (bboxData.name || bboxData.action) {
+    const hasManual =
+      bboxData.annotations &&
+      (
+        (bboxData.annotations.keypoints && bboxData.annotations.keypoints.length > 0) ||
+        (bboxData.annotations.lines && bboxData.annotations.lines.length > 0) ||
+        (bboxData.annotations.rois && bboxData.annotations.rois.length > 0) ||
+        (bboxData.annotations.measurements &&
+          (
+            (bboxData.annotations.measurements.distances && bboxData.annotations.measurements.distances.length > 0) ||
+            (bboxData.annotations.measurements.angles && bboxData.annotations.measurements.angles.length > 0)
+          ))
+      );
+    if (bboxData.name || bboxData.action || hasManual) {
       let resolvedTrackId = bboxData.track_id ?? trackId;
       let resolvedDetId = bboxData.det_id ?? null;
       if (resolvedDetId == null) {
@@ -2597,6 +2656,7 @@ async function saveCurrentFrameAnnotations() {
   const annotations = {
     frame: frameIndexToSave,
     video_id: state.videoId || null,
+    selected_track_id: state.selectedTrackId || null,
     keypoints: state.keypoints || [],
     lines: state.lines || [],
     rois: state.rois || [],
@@ -2916,8 +2976,10 @@ async function loadStudyById(studyId) {
   
   // Load video data
   state.videoId = data.video_id;
-  state.storedFilename = `video_${data.video_id}.mp4`; // Video is now in temp
   state.originalFilename = data.original_filename;
+  const extMatch = (state.originalFilename || "").match(/\.[^.]+$/);
+  const vidExt = extMatch ? extMatch[0] : ".mp4";
+  state.storedFilename = `video_${data.video_id}${vidExt}`;
   state.frames = data.frames || [];
   state.hasKeypointsFile = data.metadata?.has_keypoints || false;
   state.metadata = data.metadata || {};
@@ -2996,16 +3058,16 @@ videoInput.addEventListener("change", (e) => {
   }
 });
 
-keypointsInput.addEventListener("change", (e) => {
+tracksInput.addEventListener("change", (e) => {
   const file = e.target.files[0];
   if (file) {
     const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
-    keypointsFileInfo.textContent = `Selected: ${file.name} (${sizeMB} MB)`;
-    keypointsFileInfo.style.color = "#4caf50";
-    console.log(`[keypointsInput] File selected: ${file.name}, size: ${file.size} bytes`);
+    tracksFileInfo.textContent = `Selected: ${file.name} (${sizeMB} MB)`;
+    tracksFileInfo.style.color = "#4caf50";
+    console.log(`[tracksInput] File selected: ${file.name}, size: ${file.size} bytes`);
   } else {
-    keypointsFileInfo.textContent = "";
-    console.log(`[keypointsInput] File selection cleared`);
+    tracksFileInfo.textContent = "";
+    console.log(`[tracksInput] File selection cleared`);
   }
   updateUploadButtonState();
 });
@@ -3028,7 +3090,8 @@ function updateUploadButtonState() {
   if (!uploadBtn) return;
   const uploadBtnText = document.getElementById("upload-btn-text");
   const hasVideo = videoInput && videoInput.files.length > 0;
-  if (hasVideo) {
+  const hasTracks = tracksInput && tracksInput.files.length > 0;
+  if (hasVideo && hasTracks) {
     uploadBtn.disabled = false;
     uploadBtn.style.opacity = "1";
     uploadBtn.style.cursor = "pointer";

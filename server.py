@@ -13,11 +13,19 @@ from typing import Any, Dict, List, Optional, Set
 from threading import Lock
 
 import cv2
-from fastapi import Body, FastAPI, File, Form, HTTPException, Request, UploadFile
+from fastapi import Body, FastAPI, File, Form, HTTPException, Query, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from passlib.hash import bcrypt
+
+from mot_tracks import (
+    ensure_extended_mot_copy,
+    frame_payload_from_extended_lines,
+    load_mot_tracks_from_path,
+    load_mot_tracks_from_text,
+    sync_payload_to_extended_mot_file,
+)
 
 # Set up logging
 logging.basicConfig(
@@ -447,170 +455,122 @@ def get_video_info(video_path: Path) -> Dict[str, Any]:
     }
 
 
-def _load_keypoints_tracks_jsonl(jsonl_path: Path) -> Dict[int, List[Dict[str, Any]]]:
-    """Load tracks from JSONL: one detection per line."""
-    tracks_by_frame = {}
-    
-    if not jsonl_path.exists():
-        logger.warning(f"Keypoints tracks file not found: {jsonl_path}")
-        return tracks_by_frame
-    
-    logger.info(f"Loading keypoints from: {jsonl_path}")
-    line_count = 0
-    parsed_count = 0
-    error_count = 0
-    
-    with jsonl_path.open("r") as f:
-        for line_num, line in enumerate(f, 1):
-            line = line.strip()
-            if not line:
-                continue
-            
-            line_count += 1
-            try:
-                data = json.loads(line)
-                # Handle both 'frame' and 'frame_index' keys
-                frame_index = data.get("frame", data.get("frame_index", data.get("frame_idx", 0)))
-                
-                if frame_index not in tracks_by_frame:
-                    tracks_by_frame[frame_index] = []
-                
-                tracks_by_frame[frame_index].append(data)
-                parsed_count += 1
-                
-                # Log first few tracks for debugging
-                if parsed_count <= 3:
-                    logger.info(f"Parsed track {parsed_count}: frame={frame_index}, track_id={data.get('track_id')}, has_bbox={bool(data.get('bbox'))}, has_keypoints={bool(data.get('keypoints'))}")
-            except json.JSONDecodeError as e:
-                error_count += 1
-                logger.warning(f"Error parsing line {line_num} in {jsonl_path}: {e}")
-                continue
-    
-    logger.info(f"Loaded keypoints: {line_count} total lines, {parsed_count} parsed successfully, {error_count} errors, {len(tracks_by_frame)} unique frames")
-    return tracks_by_frame
+def _temp_tracks_path(temp_root: Path, video_id: str) -> Path:
+    return temp_root / f"tracks_{video_id}.txt"
 
 
-def _load_keypoints_tracks_pt(pt_path: Path) -> Dict[int, List[Dict[str, Any]]]:
-    """
-    Load tracks from a Torch .pt file with fields:
-    id, frame_idx, bb_left, bb_top, bb_width, bb_height, pred_2d.
-    """
-    if not pt_path.exists():
-        logger.warning(f"Keypoints tracks file not found: {pt_path}")
-        return {}
-
-    try:
-        import torch
-    except Exception as exc:
-        raise RuntimeError("PyTorch is required to read .pt tracks files") from exc
-
-    logger.info(f"Loading keypoints from: {pt_path}")
-    raw = torch.load(str(pt_path), map_location="cpu")
-    if not isinstance(raw, dict):
-        raise ValueError("Expected .pt payload to be a dictionary")
-
-    required = ("id", "frame_idx", "bb_left", "bb_top", "bb_width", "bb_height", "pred_2d")
-    missing = [field for field in required if field not in raw]
-    if missing:
-        raise ValueError(f".pt file is missing required fields: {', '.join(missing)}")
-
-    ids = torch.as_tensor(raw["id"]).reshape(-1)
-    frames = torch.as_tensor(raw["frame_idx"]).reshape(-1)
-    bb_left = torch.as_tensor(raw["bb_left"]).reshape(-1)
-    bb_top = torch.as_tensor(raw["bb_top"]).reshape(-1)
-    bb_width = torch.as_tensor(raw["bb_width"]).reshape(-1)
-    bb_height = torch.as_tensor(raw["bb_height"]).reshape(-1)
-    pred_2d = torch.as_tensor(raw["pred_2d"])
-
-    num_rows = int(ids.shape[0])
-    if any(int(t.shape[0]) != num_rows for t in (frames, bb_left, bb_top, bb_width, bb_height)):
-        raise ValueError(".pt fields must all have the same number of rows")
-    if pred_2d.ndim != 3 or int(pred_2d.shape[0]) != num_rows or int(pred_2d.shape[2]) != 2:
-        raise ValueError("pred_2d must have shape [N, K, 2]")
-
-    tracks_by_frame: Dict[int, List[Dict[str, Any]]] = {}
-    det_ids_by_frame: Dict[int, int] = {}
-
-    for idx in range(num_rows):
-        frame_index = int(frames[idx].item())
-        track_id = int(ids[idx].item())
-
-        x1 = float(bb_left[idx].item())
-        y1 = float(bb_top[idx].item())
-        width = float(bb_width[idx].item())
-        height = float(bb_height[idx].item())
-        bbox = [x1, y1, x1 + width, y1 + height]
-
-        det_id = det_ids_by_frame.get(frame_index, 0)
-        det_ids_by_frame[frame_index] = det_id + 1
-
-        keypoints = []
-        for point in pred_2d[idx].tolist():
-            keypoints.extend([float(point[0]), float(point[1]), 1.0])
-
-        record = {
-            "frame": frame_index,
-            "track_id": track_id,
-            "det_id": det_id,
-            "bbox": bbox,
-            "score": 1.0,
-            "keypoints": keypoints,
-        }
-        tracks_by_frame.setdefault(frame_index, []).append(record)
-
-    logger.info(f"Loaded keypoints from PT: {num_rows} detections across {len(tracks_by_frame)} frames")
-    return tracks_by_frame
+def _temp_annotations_txt(temp_root: Path, study_id: str) -> Path:
+    return temp_root / f"{study_id}_annotations.txt"
 
 
-def write_keypoints_tracks_jsonl(
-    tracks_by_frame: Dict[int, List[Dict[str, Any]]],
-    jsonl_path: Path,
+def _study_saved_tracks_path(study_dir: Path, metadata: Dict[str, Any]) -> Optional[Path]:
+    name = metadata.get("tracks_txt_filename")
+    if name:
+        try:
+            safe = _safe_filename(str(name))
+        except HTTPException:
+            safe = ""
+        if safe:
+            p = study_dir / safe
+            if p.exists():
+                return p
+    for f in sorted(study_dir.iterdir()):
+        if f.suffix.lower() == ".txt" and "track" in f.name.lower() and not f.name.endswith("_annotations.txt"):
+            return f
+    for f in sorted(study_dir.iterdir()):
+        if f.suffix.lower() == ".txt" and not f.name.endswith("_annotations.txt"):
+            return f
+    return None
+
+
+def _merge_frame_payload_disk_and_memory(disk: Dict[str, Any], mem: Dict[str, Any]) -> Dict[str, Any]:
+    """Merge on-disk extended-MOT frame payload with in-memory edits before sync."""
+    out: Dict[str, Any] = {
+        "bounding_boxes": dict(disk.get("bounding_boxes") or {}),
+        "keypoints": list(disk.get("keypoints") or []),
+        "lines": list(disk.get("lines") or []),
+        "rois": list(disk.get("rois") or []),
+        "measurements": dict(disk.get("measurements") or {"distances": [], "angles": []}),
+    }
+    if "keypoints" in mem:
+        kp = mem["keypoints"]
+        out["keypoints"] = [] if kp is None else list(kp)
+    if "lines" in mem:
+        ln = mem["lines"]
+        out["lines"] = [] if ln is None else list(ln)
+    if "rois" in mem:
+        r = mem["rois"]
+        out["rois"] = [] if r is None else list(r)
+    if "measurements" in mem and isinstance(mem.get("measurements"), dict):
+        out["measurements"] = dict(mem["measurements"])
+    mem_bb = mem.get("bounding_boxes") or {}
+    for tid, bb in mem_bb.items():
+        if not isinstance(bb, dict):
+            continue
+        sk = str(tid)
+        if sk not in out["bounding_boxes"]:
+            out["bounding_boxes"][sk] = dict(bb)
+        else:
+            merged = dict(out["bounding_boxes"][sk])
+            merged.update(bb)
+            out["bounding_boxes"][sk] = merged
+    return out
+
+
+def _flush_study_memory_to_extended_mot(
+    user_key: str,
+    temp_root: Path,
+    study_id: str,
+    video_id: str,
 ) -> None:
-    """Persist normalized tracks as JSONL for downstream save/load paths."""
-    with jsonl_path.open("w", encoding="utf-8") as f:
-        for frame_index in sorted(tracks_by_frame.keys()):
-            for record in tracks_by_frame.get(frame_index, []):
-                f.write(json.dumps(record, ensure_ascii=False) + "\n")
-
-
-def load_keypoints_tracks(path: Path) -> Dict[int, List[Dict[str, Any]]]:
-    """
-    Load keypoints tracks from .jsonl or .pt.
-    Returns: {frame_index: [detections]}
-    """
-    suffix = path.suffix.lower()
-    if suffix == ".jsonl":
-        return _load_keypoints_tracks_jsonl(path)
-    if suffix == ".pt":
-        return _load_keypoints_tracks_pt(path)
-    logger.warning(f"Unsupported keypoints tracks format for {path}")
-    return {}
+    """Write all in-memory frame annotations for this study into the extended MOT file."""
+    fa = _user_frame_annotations(user_key).get(study_id, {})
+    if not fa:
+        return
+    ann_path = _temp_annotations_txt(temp_root, study_id)
+    tracks_path = _temp_tracks_path(temp_root, video_id)
+    ensure_extended_mot_copy(tracks_path, ann_path)
+    lines = ann_path.read_text(encoding="utf-8").splitlines() if ann_path.exists() else []
+    for frame_idx in sorted(fa.keys(), key=lambda x: int(x) if isinstance(x, str) and str(x).isdigit() else x):
+        mem = fa.get(frame_idx)
+        if not isinstance(mem, dict):
+            continue
+        try:
+            fi = int(frame_idx) if isinstance(frame_idx, str) and str(frame_idx).isdigit() else int(frame_idx)
+        except Exception:
+            continue
+        disk = frame_payload_from_extended_lines(lines, fi)
+        merged = _merge_frame_payload_disk_and_memory(disk, mem)
+        sync_payload_to_extended_mot_file(ann_path, fi, merged)
+        lines = ann_path.read_text(encoding="utf-8").splitlines()
 
 
 @app.post("/upload")
 async def upload_file(
     request: Request,
     video_file: UploadFile = File(...),
-    keypoints_file: UploadFile = File(None)
+    tracks_txt_file: UploadFile = File(...),
 ) -> JSONResponse:
-    logger.info(f"Upload request received: video_file={video_file.filename}, keypoints_file={keypoints_file.filename if keypoints_file else None}")
-    """
-    Upload a video file and optional tracks file (.jsonl or .pt).
-    """
+    logger.info(
+        f"Upload: video={video_file.filename}, tracks_txt={tracks_txt_file.filename if tracks_txt_file else None}"
+    )
     if not video_file.filename:
         raise HTTPException(status_code=400, detail="Video filename is required.")
-    
+    if tracks_txt_file is None or not tracks_txt_file.filename:
+        raise HTTPException(status_code=400, detail="Tracks .txt file is required (MOT format).")
+    if Path(_safe_filename(tracks_txt_file.filename)).suffix.lower() != ".txt":
+        raise HTTPException(status_code=400, detail="Tracks file must be a .txt file.")
+
     user_key, study_root, temp_root = _user_dirs(request)
     _clear_user_temp(user_key, temp_root)
 
-    # Save video file
     video_extension = Path(video_file.filename).suffix.lower()
     if video_extension not in [".mp4", ".avi", ".mov", ".mkv"]:
         raise HTTPException(status_code=400, detail="Unsupported video format.")
-    
+
     video_id = uuid.uuid4().hex
     video_path = temp_root / f"video_{video_id}{video_extension}"
-    
+
     try:
         with video_path.open("wb") as buffer:
             while True:
@@ -620,15 +580,26 @@ async def upload_file(
                 buffer.write(chunk)
     except OSError as exc:
         raise HTTPException(status_code=500, detail=f"Failed to store video: {exc}") from exc
-    
-    # Get video metadata (without extracting frames - we'll stream them on-demand)
+
+    tracks_original_name = _safe_filename(tracks_txt_file.filename)
+    tracks_path = _temp_tracks_path(temp_root, video_id)
+    try:
+        with tracks_path.open("wb") as buffer:
+            while True:
+                chunk = await tracks_txt_file.read(1024 * 1024)
+                if not chunk:
+                    break
+                buffer.write(chunk)
+    except OSError as exc:
+        if video_path.exists():
+            video_path.unlink(missing_ok=True)
+        raise HTTPException(status_code=500, detail=f"Failed to store tracks: {exc}") from exc
+
     try:
         video_info = get_video_info(video_path)
         total_frames = video_info["total_frames"]
         if total_frames == 0:
             raise HTTPException(status_code=400, detail="Video has no frames.")
-        
-        # Create frame list metadata (without extracting actual frames)
         frames = [
             {
                 "frame_index": i,
@@ -636,91 +607,49 @@ async def upload_file(
             }
             for i in range(total_frames)
         ]
+    except HTTPException:
+        raise
     except Exception as exc:
         if video_path.exists():
             video_path.unlink(missing_ok=True)
+        if tracks_path.exists():
+            tracks_path.unlink(missing_ok=True)
         raise HTTPException(status_code=500, detail=f"Failed to read video: {exc}") from exc
-    
-    # Load keypoints tracks if provided
-    keypoints_tracks = {}
-    keypoints_source_format = "none"
-    logger.info(f"Checking keypoints_file: {keypoints_file}, filename: {keypoints_file.filename if keypoints_file else None}")
-    
-    if keypoints_file is not None and keypoints_file.filename:
-        keypoints_path = temp_root / f"keypoints_{video_id}.jsonl"
-        try:
-            file_size = keypoints_file.size if hasattr(keypoints_file, 'size') else 'unknown'
-            logger.info(f"Received keypoints file: {keypoints_file.filename}, size: {file_size}")
 
-            keypoints_ext = Path(keypoints_file.filename).suffix.lower()
-            if keypoints_ext not in {".jsonl", ".pt"}:
-                raise HTTPException(status_code=400, detail="Unsupported tracks format. Use .jsonl or .pt")
-            keypoints_source_format = "pt" if keypoints_ext == ".pt" else "jsonl"
+    try:
+        keypoints_tracks = load_mot_tracks_from_path(tracks_path)
+    except Exception as exc:
+        if video_path.exists():
+            video_path.unlink(missing_ok=True)
+        if tracks_path.exists():
+            tracks_path.unlink(missing_ok=True)
+        raise HTTPException(status_code=400, detail=f"Invalid MOT tracks file: {exc}") from exc
 
-            uploaded_keypoints_path = temp_root / f"keypoints_{video_id}{keypoints_ext}"
-            with uploaded_keypoints_path.open("wb") as buffer:
-                while True:
-                    chunk = await keypoints_file.read(1024 * 1024)
-                    if not chunk:
-                        break
-                    buffer.write(chunk)
-
-            logger.info(f"Saved tracks file to: {uploaded_keypoints_path}, size: {uploaded_keypoints_path.stat().st_size} bytes")
-
-            if uploaded_keypoints_path.stat().st_size == 0:
-                logger.warning("Keypoints file is empty!")
-            else:
-                keypoints_tracks = load_keypoints_tracks(uploaded_keypoints_path)
-                if keypoints_ext == ".pt":
-                    # Save a canonical JSONL copy so existing save/load/export paths remain unchanged.
-                    write_keypoints_tracks_jsonl(keypoints_tracks, keypoints_path)
-                elif uploaded_keypoints_path != keypoints_path:
-                    shutil.copy2(uploaded_keypoints_path, keypoints_path)
-
-                logger.info(f"Loaded keypoints tracks: {len(keypoints_tracks)} frames with tracks")
-                if len(keypoints_tracks) > 0:
-                    sample_frame = list(keypoints_tracks.keys())[0]
-                    logger.info(f"Sample frame {sample_frame} has {len(keypoints_tracks[sample_frame])} tracks")
-                else:
-                    logger.warning("No tracks loaded from keypoints file - file may be empty or malformed")
-        except HTTPException:
-            raise
-        except Exception as exc:
-            logger.error(f"Error loading keypoints tracks: {exc}", exc_info=True)
-            import traceback
-            logger.error(traceback.format_exc())
-    else:
-        logger.info("No keypoints file provided in upload (keypoints_file is None or has no filename)")
-    
-    # Get first frame image URL (now streams from video file)
     first_image_url = f"/video/{video_id}/frame/0"
-    
+    meta = {
+        "video_filename": _safe_filename(video_file.filename),
+        "tracks_txt_filename": tracks_original_name,
+        "total_frames": len(frames),
+        "has_keypoints": len(keypoints_tracks) > 0,
+        "tracks_source_format": "mot_txt",
+    }
     response_data = {
         "video_id": video_id,
         "image_url": first_image_url,
         "stored_filename": video_path.name,
         "kind": "video",
-        "frames": frames,  # Frame metadata (indices and timestamps) without actual frame images
+        "frames": frames,
         "keypoints_tracks": keypoints_tracks,
         "total_frames": len(frames),
-        "metadata": {
-            "video_filename": video_file.filename,
-            "total_frames": len(frames),
-            "has_keypoints": len(keypoints_tracks) > 0,
-            "keypoints_source_format": keypoints_source_format,
-        },
+        "metadata": meta,
     }
-    
-    # Store video metadata for potential temp study use
-    # This allows propagation to work even before study is saved
     _user_temp_studies(user_key)[video_id] = {
         "video_id": video_id,
         "frames": frames,
         "keypoints_tracks": keypoints_tracks,
         "total_frames": len(frames),
-        "metadata": response_data["metadata"],
+        "metadata": meta,
     }
-    
     return JSONResponse(response_data)
 
 
@@ -786,24 +715,21 @@ async def get_frame(request: Request, video_id: str, frame_index: int) -> Respon
 
 @app.get("/video/{video_id}/keypoints/{frame_index}")
 async def get_frame_keypoints(request: Request, video_id: str, frame_index: int) -> JSONResponse:
-    """Get keypoints/tracks for a specific frame."""
-    _, _, temp_root = _user_dirs(request)
-    # Try to load from temp file
-    keypoints_path = temp_root / f"keypoints_{video_id}.jsonl"
-    logger.info(f"Requesting keypoints for video {video_id}, frame {frame_index}")
-    logger.info(f"Keypoints file path: {keypoints_path}, exists: {keypoints_path.exists()}")
-    
-    if keypoints_path.exists():
-        keypoints_tracks = load_keypoints_tracks(keypoints_path)
-        logger.info(f"Loaded {len(keypoints_tracks)} frames from keypoints file for video {video_id}")
-        
-        # Handle both 'frame' and 'frame_index' keys in the data
-        frame_tracks = keypoints_tracks.get(frame_index, [])
-        logger.info(f"Found {len(frame_tracks)} tracks for frame {frame_index}")
-        return JSONResponse({"tracks": frame_tracks})
+    """Get tracks (bboxes) for a specific frame from cached MOT data or disk."""
+    user_key, _, temp_root = _user_dirs(request)
+    temp_data = _user_temp_studies(user_key).get(video_id)
+    if temp_data and temp_data.get("keypoints_tracks"):
+        keypoints_tracks = temp_data["keypoints_tracks"]
     else:
-        # No keypoints file - return empty tracks (no warning, this is normal)
-        return JSONResponse({"tracks": []})
+        tp = _temp_tracks_path(temp_root, video_id)
+        if tp.exists():
+            keypoints_tracks = load_mot_tracks_from_path(tp)
+        else:
+            keypoints_tracks = {}
+    frame_tracks = keypoints_tracks.get(frame_index, [])
+    if not frame_tracks:
+        frame_tracks = keypoints_tracks.get(str(frame_index), [])
+    return JSONResponse({"tracks": frame_tracks})
 
 
 # Store annotations per frame in memory, per user
@@ -875,14 +801,13 @@ async def save_frame_annotations(
     frame_index: int,
     payload: Dict[str, Any] = Body(...)
 ) -> JSONResponse:
-    """Save annotations for a specific frame."""
+    """Save annotations for a specific frame (updates temp extended MOT file)."""
     study_id = _safe_study_id(study_id)
-    user_key, _, temp_root = _user_dirs(request)
+    user_key, study_root, temp_root = _user_dirs(request)
     frame_annotations = _user_frame_annotations(user_key)
     if study_id not in frame_annotations:
         frame_annotations[study_id] = {}
 
-    # Normalize payload for easier inspection/debugging.
     payload["frame"] = frame_index
     video_id = payload.get("video_id")
     bounding_boxes = payload.get("bounding_boxes")
@@ -913,50 +838,25 @@ async def save_frame_annotations(
                         if match:
                             bbox_ann["track_id"] = match.get("track_id", bbox_ann.get("track_id"))
                             bbox_ann["det_id"] = match.get("det_id")
-    
+
     frame_annotations[study_id][frame_index] = payload
-    
-    # Save to temp file for persistence
-    temp_annotations_file = temp_root / f"{study_id}_annotations.json"
-    try:
-        with _temp_lock(user_key, study_id):
-            # Load existing annotations first
-            existing_annotations = {}
-            if temp_annotations_file.exists():
-                try:
-                    with temp_annotations_file.open("r", encoding="utf-8") as f:
-                        existing_annotations = json.load(f)
-                except Exception:
-                    existing_annotations = {}
-            
-            # Update with current study's annotations
-            if study_id not in existing_annotations:
-                existing_annotations[study_id] = {}
-            
-            # Convert frame_index to string for JSON consistency
-            existing_annotations[study_id][str(frame_index)] = payload
-            
-            # Write back
-            with temp_annotations_file.open("w", encoding="utf-8") as f:
-                json.dump(existing_annotations, f, indent=2)
-        
-        # Log what was saved
-        keypoints_count = len(payload.get('keypoints', []))
-        lines_count = len(payload.get('lines', []))
-        rois_count = len(payload.get('rois', []))
-        distances_count = len(payload.get('measurements', {}).get('distances', []))
-        angles_count = len(payload.get('measurements', {}).get('angles', []))
-        logger.info(f"Saved annotations for frame {frame_index} of study {study_id}: keypoints={keypoints_count}, lines={lines_count}, rois={rois_count}, distances={distances_count}, angles={angles_count}")
-        
-        # Also update in-memory storage
-        if study_id not in frame_annotations:
-            frame_annotations[study_id] = {}
-        frame_annotations[study_id][frame_index] = payload
-    except Exception as e:
-        logger.warning(f"Failed to save temp annotations file: {e}")
-        import traceback
-        logger.error(traceback.format_exc())
-    
+
+    if video_id:
+        ann_path = _temp_annotations_txt(temp_root, study_id)
+        ensure_extended_mot_copy(_temp_tracks_path(temp_root, video_id), ann_path)
+        try:
+            with _temp_lock(user_key, study_id):
+                sync_payload_to_extended_mot_file(ann_path, frame_index, payload)
+        except ValueError as e:
+            logger.error(f"Extended MOT sync rejected: {e}")
+            raise HTTPException(status_code=400, detail=str(e)) from e
+        except Exception as e:
+            logger.warning(f"Failed to sync annotations txt: {e}")
+            logger.error(traceback.format_exc())
+
+    kp = len(payload.get("keypoints", []))
+    ln = len(payload.get("lines", []))
+    logger.info(f"Saved frame {frame_index} study {study_id}: keypoints={kp}, lines={ln}")
     return JSONResponse({"status": "saved"})
 
 
@@ -964,55 +864,63 @@ async def save_frame_annotations(
 async def get_frame_annotations(
     request: Request,
     study_id: str,
-    frame_index: int
+    frame_index: int,
+    video_id: str = Query(..., description="Current session temp video id (required when reading from disk)."),
 ) -> JSONResponse:
-    """Get annotations for a specific frame."""
+    """Get annotations for a frame from memory or temp extended MOT (strict: temp ann + temp tracks only)."""
     study_id = _safe_study_id(study_id)
-    user_key, study_root, temp_root = _user_dirs(request)
-    frame_annotations = _user_frame_annotations(user_key)
-    frame_annotations = _user_frame_annotations(user_key)
-
-    # 1. Check Memory (Fastest, most recent)
-    per_study = frame_annotations.get(study_id, {})
-    # Check int key then str key
+    user_key, _, temp_root = _user_dirs(request)
+    frame_store = _user_frame_annotations(user_key)
+    per_study = frame_store.get(study_id, {})
     annotations = per_study.get(frame_index) or per_study.get(str(frame_index))
-    
     if annotations:
         return JSONResponse(annotations)
 
-    # 2. Check Temp File (Active session persistence)
-    temp_annotations_file = temp_root / f"{study_id}_annotations.json"
-    if temp_annotations_file.exists():
-        try:
-            with temp_annotations_file.open("r", encoding="utf-8") as f:
-                loaded_annotations = json.load(f)
-                if study_id in loaded_annotations:
-                    frame_ann = loaded_annotations[study_id]
-                    annotations = frame_ann.get(str(frame_index)) or frame_ann.get(frame_index)
-                    if annotations:
-                        return JSONResponse(annotations)
-        except Exception:
-            pass
+    vid = str(video_id).strip()
+    if not vid:
+        raise HTTPException(status_code=400, detail="video_id query parameter is required and non-empty.")
 
-    # Try to load from saved study file first
-    study_data = load_study(study_root, study_id)
-    if study_data and "frame_annotations" in study_data:
-        frame_annotations = study_data["frame_annotations"]
-        annotations = frame_annotations.get(str(frame_index)) or frame_annotations.get(frame_index)
-        if annotations:
-            return JSONResponse(annotations)
-    
- 
-    if not annotations:
-        annotations = {
-            "bounding_boxes": {},  # {track_id: {bbox, name, action, annotations}}
-            "keypoints": [],
-            "lines": [],
-            "rois": [],
-            "measurements": {"distances": [], "angles": []},
-        }
-    
-    return JSONResponse(annotations)
+    tracks_path = _temp_tracks_path(temp_root, vid)
+    if not tracks_path.exists():
+        raise HTTPException(
+            status_code=404,
+            detail=f"No temp MOT tracks file for video_id {vid}; upload again or load a study.",
+        )
+
+    ann_temp = _temp_annotations_txt(temp_root, study_id)
+    if not ann_temp.exists():
+        raise HTTPException(
+            status_code=404,
+            detail=f"Extended annotations file missing in temp for study {study_id}; upload/load study or POST a frame first.",
+        )
+
+    try:
+        lines = ann_temp.read_text(encoding="utf-8").splitlines()
+        man = frame_payload_from_extended_lines(lines, frame_index)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=f"Invalid extended MOT file: {e}") from e
+
+    try:
+        keypoints_tracks = load_mot_tracks_from_path(tracks_path)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=f"Invalid MOT tracks file: {e}") from e
+
+    if man.get("bounding_boxes") and keypoints_tracks:
+        for tid, bb in list(man["bounding_boxes"].items()):
+            if not isinstance(bb, dict):
+                continue
+            if bb.get("det_id") is None:
+                match = _find_track_for_frame(keypoints_tracks, frame_index, bb.get("track_id", tid))
+                if match:
+                    bb["det_id"] = match.get("det_id")
+                    bb["track_id"] = match.get("track_id", bb.get("track_id"))
+    out = {
+        "frame": frame_index,
+        "study_id": study_id,
+        "video_id": vid,
+        **man,
+    }
+    return JSONResponse(out)
 
 
 @app.post("/study/{from_study_id}/migrate/{to_study_id}")
@@ -1021,92 +929,30 @@ async def migrate_study_annotations(
     from_study_id: str,
     to_study_id: str
 ) -> JSONResponse:
-    """Migrate annotations from one study ID to another in the temp file."""
+    """Copy temp extended MOT annotations from one study id to another."""
     from_study_id = _safe_study_id(from_study_id)
     to_study_id = _safe_study_id(to_study_id)
     user_key, _, temp_root = _user_dirs(request)
-    from_temp_file = temp_root / f"{from_study_id}_annotations.json"
-    to_temp_file = temp_root / f"{to_study_id}_annotations.json"
-    
-    if not from_temp_file.exists():
-        logger.warning(f"Source temp file not found: {from_temp_file}")
+    from_ann = _temp_annotations_txt(temp_root, from_study_id)
+    to_ann = _temp_annotations_txt(temp_root, to_study_id)
+
+    if not from_ann.exists():
+        logger.warning(f"Source annotations file not found: {from_ann}")
         return JSONResponse({"status": "no_source", "message": f"No annotations found for {from_study_id}"})
-    
+
     try:
-        # Load source annotations
-        with from_temp_file.open("r", encoding="utf-8") as f:
-            temp_annotations = json.load(f)
-        
-        # Get source study data
-        if from_study_id not in temp_annotations:
-            logger.warning(f"Source study {from_study_id} not found in temp file")
-            return JSONResponse({"status": "no_data", "message": f"No annotations found for {from_study_id}"})
-        
-        source_data = temp_annotations[from_study_id]
-        
         with _temp_lock(user_key, to_study_id):
-            # Load or create destination file
-            if to_temp_file.exists():
-                with to_temp_file.open("r", encoding="utf-8") as f:
-                    dest_annotations = json.load(f)
-            else:
-                dest_annotations = {}
-            
-            # Copy annotations to destination
-            if to_study_id not in dest_annotations:
-                dest_annotations[to_study_id] = {}
-            
-            # Merge source into destination (destination takes precedence for conflicts)
-            for frame_idx, frame_data in source_data.items():
-                if frame_idx not in dest_annotations[to_study_id]:
-                    dest_annotations[to_study_id][frame_idx] = frame_data
-                else:
-                    # Merge: combine arrays, prefer destination for conflicts
-                    dest_frame = dest_annotations[to_study_id][frame_idx]
-                    # Merge keypoints, lines, etc. (append if not already present)
-                    for key in ['keypoints', 'lines', 'rois']:
-                        if key in frame_data and isinstance(frame_data[key], list):
-                            existing_ids = {item.get('id') for item in dest_frame.get(key, [])}
-                            for item in frame_data[key]:
-                                if item.get('id') not in existing_ids:
-                                    if key not in dest_frame:
-                                        dest_frame[key] = []
-                                    dest_frame[key].append(item)
-                    
-                    # Merge measurements
-                    if 'measurements' in frame_data:
-                        if 'measurements' not in dest_frame:
-                            dest_frame['measurements'] = {'distances': [], 'angles': []}
-                        for mtype in ['distances', 'angles']:
-                            if mtype in frame_data['measurements']:
-                                existing_ids = {item.get('id') for item in dest_frame['measurements'].get(mtype, [])}
-                                for item in frame_data['measurements'][mtype]:
-                                    if item.get('id') not in existing_ids:
-                                        dest_frame['measurements'][mtype].append(item)
-                    
-                    # Merge bounding boxes
-                    if 'bounding_boxes' in frame_data:
-                        if 'bounding_boxes' not in dest_frame:
-                            dest_frame['bounding_boxes'] = {}
-                        dest_frame['bounding_boxes'].update(frame_data['bounding_boxes'])
-            
-            # Save destination file
-            with to_temp_file.open("w", encoding="utf-8") as f:
-                json.dump(dest_annotations, f, indent=2)
-        
-        # Also update in-memory storage
+            shutil.copy2(from_ann, to_ann)
         frame_annotations = _user_frame_annotations(user_key)
         if from_study_id in frame_annotations:
             if to_study_id not in frame_annotations:
                 frame_annotations[to_study_id] = {}
             frame_annotations[to_study_id].update(frame_annotations[from_study_id])
-        
-        logger.info(f"Migrated annotations from {from_study_id} to {to_study_id}: {len(source_data)} frames")
-        return JSONResponse({"status": "success", "frames_migrated": len(source_data)})
-    
+        n = len(frame_annotations.get(to_study_id, {}))
+        logger.info(f"Migrated temp annotations from {from_study_id} to {to_study_id} ({n} frames in memory)")
+        return JSONResponse({"status": "success", "frames_migrated": n})
     except Exception as e:
         logger.error(f"Error migrating annotations: {e}")
-        import traceback
         logger.error(traceback.format_exc())
         return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
 
@@ -1129,39 +975,24 @@ async def save_annotations(
         raise HTTPException(status_code=400, detail=f"Invalid JSON payload: {str(e)}")
     
     user_key, study_root, temp_root = _user_dirs(request)
-    frame_annotations = _user_frame_annotations(user_key)
     study_dir = study_root / study_id
-    
-    # Get video_id and original filename from payload
+
     video_id = payload_data.get("video_id")
     original_filename = _safe_filename(payload_data.get("original_filename", ""))
     payload_metadata = payload_data.get("metadata", {})
     if not isinstance(payload_metadata, dict):
         payload_metadata = {}
-    keypoints_source_format = payload_metadata.get("keypoints_source_format")
-    if keypoints_source_format not in {"pt", "jsonl", "none"}:
-        keypoints_source_format = None
 
-    if keypoints_source_format is None and video_id:
-        if (temp_root / f"keypoints_{video_id}.pt").exists():
-            keypoints_source_format = "pt"
-        elif (temp_root / f"keypoints_{video_id}.jsonl").exists():
-            keypoints_source_format = "jsonl"
-
-    if keypoints_source_format is None:
-        existing_metadata = load_study(study_root, study_id) or {}
-        existing_source_format = existing_metadata.get("keypoints_source_format")
-        if existing_source_format in {"pt", "jsonl", "none"}:
-            keypoints_source_format = existing_source_format
-
-    if keypoints_source_format is None:
-        keypoints_source_format = "none"
-
-    study_metadata = {
-        "original_filename": original_filename,
-        "study_id": study_id,
-        "keypoints_source_format": keypoints_source_format,
-    }
+    temp_meta: Dict[str, Any] = {}
+    if video_id:
+        td = _user_temp_studies(user_key).get(video_id)
+        if td and isinstance(td.get("metadata"), dict):
+            temp_meta = td["metadata"]
+    tracks_txt_filename = payload_metadata.get("tracks_txt_filename") or temp_meta.get("tracks_txt_filename")
+    if tracks_txt_filename:
+        tracks_txt_filename = _safe_filename(str(tracks_txt_filename))
+    else:
+        tracks_txt_filename = "tracks.txt"
 
     source_study_id = payload_data.get("source_study_id")
     if source_study_id:
@@ -1203,346 +1034,66 @@ async def save_annotations(
         else:
             logger.warning(f"Video file not found in temp directory: {temp_video_path}")
 
-    # Copy keypoints tracks file to study folder if present
-    if video_id:
-        temp_keypoints_path = temp_root / f"keypoints_{video_id}.jsonl"
-        study_keypoints_path = study_dir / "keypoints_tracks.jsonl"
-        copied = False
-        if temp_keypoints_path.exists():
-            try:
-                shutil.copy2(temp_keypoints_path, study_keypoints_path)
-                copied = True
-                logger.info(f"Copied keypoints file to study folder: {study_keypoints_path}")
-            except Exception as e:
-                logger.warning(f"Failed to copy keypoints file to study folder: {e}")
-        if not copied and source_study_id:
-            source_keypoints = _find_keypoints_file(study_root / source_study_id)
-            if source_keypoints and source_keypoints.exists():
-                try:
-                    if source_keypoints.suffix.lower() == ".pt":
-                        source_tracks = load_keypoints_tracks(source_keypoints)
-                        write_keypoints_tracks_jsonl(source_tracks, study_keypoints_path)
-                    else:
-                        shutil.copy2(source_keypoints, study_keypoints_path)
-                    copied = True
-                    logger.info(f"Copied keypoints file from source study: {study_keypoints_path}")
-                except Exception as e:
-                    logger.warning(f"Failed to copy source keypoints file: {e}")
-        if not copied and study_keypoints_path.exists():
-            logger.info("Keypoints file already present in study folder; leaving unchanged.")
-    
-    # Remove keypoints_tracks from payload_data - we don't need to save it
-    # It can be loaded from the temp file when needed (for export)
+    if not video_id:
+        raise HTTPException(status_code=400, detail="video_id is required to save a study")
+
+    temp_tracks = _temp_tracks_path(temp_root, video_id)
+    study_tracks_path = study_dir / tracks_txt_filename
+    try:
+        if temp_tracks.exists():
+            shutil.copy2(temp_tracks, study_tracks_path)
+            logger.info(f"Copied MOT tracks to study: {study_tracks_path}")
+        elif source_study_id:
+            src_meta = load_study(study_root, source_study_id) or {}
+            src_t = _study_saved_tracks_path(study_root / source_study_id, src_meta)
+            if src_t and src_t.exists():
+                shutil.copy2(src_t, study_tracks_path)
+                logger.info(f"Copied MOT tracks from source study: {study_tracks_path}")
+    except Exception as e:
+        logger.warning(f"Failed to copy tracks file: {e}")
+
     if "keypoints_tracks" in payload_data:
         del payload_data["keypoints_tracks"]
-    
-    # Also remove frames array - we don't need to save it, can be regenerated
     if "frames" in payload_data:
         del payload_data["frames"]
-    
-    # Collect all frame annotations from temp file (this is the source of truth)
-    # The temp file contains all annotations created while navigating frames
-    all_frame_annotations = {}
-    
-    # Load from temp file (this is where annotations are persisted during navigation)
-    temp_annotations_file = temp_root / f"{study_id}_annotations.json"
-    if temp_annotations_file.exists():
-        try:
-            with _temp_lock(user_key, study_id):
-                with temp_annotations_file.open("r", encoding="utf-8") as f:
-                    temp_annotations = json.load(f)
-                    logger.info(f"Loaded temp annotations file: {list(temp_annotations.keys())}")
-                    if study_id in temp_annotations:
-                        frame_data = temp_annotations[study_id]
-                        logger.info(f"Found {len(frame_data)} frames in temp file for study {study_id}, keys: {list(frame_data.keys())[:10]}")
-                        # Convert string keys to int keys
-                        for key, value in frame_data.items():
-                            frame_idx = int(key) if isinstance(key, str) and key.isdigit() else key
-                            all_frame_annotations[frame_idx] = value
-                            # Log first frame's structure and content
-                            if len(all_frame_annotations) == 1:
-                                logger.info(f"Sample frame {frame_idx} annotations keys: {list(value.keys())}")
-                                # Log actual content counts
-                                kp_count = len(value.get('keypoints', []))
-                                lines_count = len(value.get('lines', []))
-                                rois_count = len(value.get('rois', []))
-                                dist_count = len(value.get('measurements', {}).get('distances', []))
-                                ang_count = len(value.get('measurements', {}).get('angles', []))
-                                logger.info(f"Sample frame {frame_idx} content: keypoints={kp_count}, lines={lines_count}, rois={rois_count}, distances={dist_count}, angles={ang_count}")
-                    else:
-                        logger.warning(f"Study {study_id} not found in temp annotations file. Available studies: {list(temp_annotations.keys())}")
-        except Exception as e:
-            logger.warning(f"Error loading temp annotations file: {e}")
-            import traceback
-            logger.error(traceback.format_exc())
-    else:
-        logger.info(f"Temp annotations file not found: {temp_annotations_file}")
-    
-    # Merge in-memory annotations (in case temp file is out of sync)
-    if study_id in frame_annotations:
-        logger.info(f"Found {len(frame_annotations[study_id])} frames in memory for study {study_id}")
-        for frame_idx, annotations in frame_annotations[study_id].items():
-            # Only merge if frame not already in all_frame_annotations, or if memory has more recent data
-            if frame_idx not in all_frame_annotations:
-                all_frame_annotations[frame_idx] = annotations
-    
-    logger.info(f"Total frames with annotations after loading: {len(all_frame_annotations)}")
-    
-    # Save as JSONL file
-    if not video_id:
-        raise HTTPException(status_code=400, detail="video_id is required to save annotations")
-    
-    keypoints_path = temp_root / f"keypoints_{video_id}.jsonl"
-    annotations_path = study_dir / f"{study_id}_annotations.jsonl"
-    
-    # Helper function to serialize annotation objects with full data for reconstruction
-    def serialize_keypoint(kp):
-        return {
-            "id": kp.get("id", ""),
-            "name": kp.get("label", ""),
-            "x": kp.get("x", 0),
-            "y": kp.get("y", 0),
-            "color": kp.get("color", "#ff5252")
-        }
-    
-    def serialize_line(line):
-        return {
-            "id": line.get("id", ""),
-            "name": line.get("label", ""),
-            "start": {"x": line.get("start", {}).get("x", 0), "y": line.get("start", {}).get("y", 0)},
-            "end": {"x": line.get("end", {}).get("x", 0), "y": line.get("end", {}).get("y", 0)},
-            "color": line.get("color", "#4fc3f7")
-        }
-    
-    def serialize_roi(roi):
-        return {
-            "id": roi.get("id", ""),
-            "name": roi.get("label", ""),
-            "points": [{"x": p.get("x", 0), "y": p.get("y", 0)} for p in roi.get("points", [])],
-            "color": roi.get("color", "#4fc3f7")
-        }
-    
-    def serialize_distance(dist):
-        return {
-            "id": dist.get("id", ""),
-            "name": dist.get("label", ""),
-            "start": {"x": dist.get("start", {}).get("x", 0), "y": dist.get("start", {}).get("y", 0)},
-            "end": {"x": dist.get("end", {}).get("x", 0), "y": dist.get("end", {}).get("y", 0)},
-            "value": dist.get("value", 0),
-            "color": dist.get("color", "#4fc3f7")
-        }
-    
-    def serialize_angle(angle):
-        return {
-            "id": angle.get("id", ""),
-            "name": angle.get("label", ""),
-            "point1": {"x": angle.get("point1", {}).get("x", 0), "y": angle.get("point1", {}).get("y", 0)},
-            "point2": {"x": angle.get("point2", {}).get("x", 0), "y": angle.get("point2", {}).get("y", 0)},
-            "point3": {"x": angle.get("point3", {}).get("x", 0), "y": angle.get("point3", {}).get("y", 0)},
-            "value": angle.get("value", 0),
-            "isReflex": angle.get("isReflex", False),
-            "color": angle.get("color", "#4fc3f7")
-        }
-    
-    if keypoints_path.exists():
-        # Case 1: Has keypoints_tracks file - save annotated tracks with name/action
-        # Manual annotations are saved as separate frame-level records (no track_id)
-        lines_written = 0
-        frames_with_manual_annotations_written = set()  # Track which frames already have manual annotations written
-        
-        with keypoints_path.open("r", encoding="utf-8") as input_file, \
-             annotations_path.open("w", encoding="utf-8") as output_file:
-            
-            for line in input_file:
-                line = line.strip()
-                if not line:
-                    continue
-                
-                try:
-                    track_record = json.loads(line)
-                    track_id = track_record.get("track_id")
-                    frame_idx = track_record.get("frame")
 
-                    if track_id is None or frame_idx is None:
-                        continue
+    ann_temp = _temp_annotations_txt(temp_root, study_id)
+    try:
+        with _temp_lock(user_key, study_id):
+            _flush_study_memory_to_extended_mot(user_key, temp_root, study_id, video_id)
+            ensure_extended_mot_copy(temp_tracks, ann_temp)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    except Exception as e:
+        logger.warning(f"Failed to finalize extended MOT file: {e}")
 
-                    frame_ann = all_frame_annotations.get(frame_idx) or all_frame_annotations.get(str(frame_idx), {})
-                    bounding_boxes = frame_ann.get("bounding_boxes", {}) if isinstance(frame_ann, dict) else {}
-                    bbox_ann = bounding_boxes.get(str(track_id)) or bounding_boxes.get(track_id)
+    ann_study = study_dir / f"{study_id}_annotations.txt"
+    try:
+        if ann_temp.exists():
+            shutil.copy2(ann_temp, ann_study)
+            logger.info(f"Saved annotations: {ann_study}")
+    except Exception as e:
+        logger.warning(f"Failed to copy annotations file: {e}")
 
-                    if not bbox_ann:
-                        continue
-
-                    name_val = bbox_ann.get("name")
-                    if isinstance(name_val, str):
-                        name_val = name_val.strip() or None
-
-                    action_val = bbox_ann.get("action")
-                    if isinstance(action_val, str):
-                        action_val = action_val.strip() or None
-
-                    if not name_val and not action_val:
-                        continue
-
-                    # Add name and action if present for this specific frame
-                    if name_val:
-                        track_record["name"] = name_val
-                    if action_val:
-                        track_record["action"] = action_val
-                    
-                    # Write the track record (without manual annotations - those go in separate frame records)
-                    output_file.write(json.dumps(track_record, ensure_ascii=False) + "\n")
-                    lines_written += 1
-                    
-                    # Write manual annotations for this frame as a separate record (only once per frame)
-                    if frame_idx not in frames_with_manual_annotations_written:
-                        frame_ann = all_frame_annotations.get(frame_idx) or all_frame_annotations.get(str(frame_idx), {})
-                        
-                        keypoints_list = frame_ann.get("keypoints", [])
-                        lines_list = frame_ann.get("lines", [])
-                        rois_list = frame_ann.get("rois", [])
-                        measurements = frame_ann.get("measurements", {})
-                        distances_list = measurements.get("distances", []) if isinstance(measurements, dict) else []
-                        angles_list = measurements.get("angles", []) if isinstance(measurements, dict) else []
-                        
-                        has_any_manual = keypoints_list or lines_list or rois_list or distances_list or angles_list
-                        
-                        if has_any_manual:
-                            # Frame-level record (no track_id) for manual annotations
-                            frame_record = {
-                                "frame": frame_idx,
-                                "Keypoints": [serialize_keypoint(kp) for kp in keypoints_list],
-                                "Lines": [serialize_line(ln) for ln in lines_list],
-                                "ROIs": [serialize_roi(roi) for roi in rois_list],
-                                "Distances": [serialize_distance(dist) for dist in distances_list],
-                                "Angles": [serialize_angle(ang) for ang in angles_list]
-                            }
-                            output_file.write(json.dumps(frame_record, ensure_ascii=False) + "\n")
-                            lines_written += 1
-                        
-                        frames_with_manual_annotations_written.add(frame_idx)
-                    
-                except json.JSONDecodeError as e:
-                    logger.warning(f"Error parsing line in {keypoints_path}: {e}")
-                    continue
-        
-        # Also write manual annotations for frames that don't have any tracks
-        # (in case user added manual annotations on frames without annotated tracks)
-        with annotations_path.open("a", encoding="utf-8") as output_file:
-            for frame_idx in all_frame_annotations.keys():
-                # Normalize frame_idx to int
-                if isinstance(frame_idx, str) and frame_idx.isdigit():
-                    frame_idx_int = int(frame_idx)
-                else:
-                    frame_idx_int = frame_idx
-                
-                if frame_idx_int in frames_with_manual_annotations_written:
-                    continue
-                
-                frame_ann = all_frame_annotations.get(frame_idx) or all_frame_annotations.get(str(frame_idx), {})
-                
-                keypoints_list = frame_ann.get("keypoints", [])
-                lines_list = frame_ann.get("lines", [])
-                rois_list = frame_ann.get("rois", [])
-                measurements = frame_ann.get("measurements", {})
-                distances_list = measurements.get("distances", []) if isinstance(measurements, dict) else []
-                angles_list = measurements.get("angles", []) if isinstance(measurements, dict) else []
-                
-                has_any_manual = keypoints_list or lines_list or rois_list or distances_list or angles_list
-                
-                if has_any_manual:
-                    frame_record = {
-                        "frame": frame_idx_int,
-                        "Keypoints": [serialize_keypoint(kp) for kp in keypoints_list],
-                        "Lines": [serialize_line(ln) for ln in lines_list],
-                        "ROIs": [serialize_roi(roi) for roi in rois_list],
-                        "Distances": [serialize_distance(dist) for dist in distances_list],
-                        "Angles": [serialize_angle(ang) for ang in angles_list]
-                    }
-                    output_file.write(json.dumps(frame_record, ensure_ascii=False) + "\n")
-                    lines_written += 1
-                    frames_with_manual_annotations_written.add(frame_idx_int)
-        
-        logger.info(f"Saved study {study_id} as JSONL: {lines_written} lines written (includes {len(frames_with_manual_annotations_written)} frame annotation records)")
-        
-        # Also save metadata file with original video filename
-        metadata_path = study_dir / f"{study_id}_metadata.json"
-        with metadata_path.open("w", encoding="utf-8") as f:
-            json.dump(study_metadata, f, indent=2)
-    else:
-        # Case 2: No keypoints_tracks file - save frame annotations (keypoints, lines, ROIs, distances, angles)
-        lines_written = 0
-        
-        logger.info(f"Saving annotations for study {study_id} (no keypoints file). Found {len(all_frame_annotations)} frames with annotations data.")
-        
-        with annotations_path.open("w", encoding="utf-8") as output_file:
-            # Write one line per frame that has annotations
-            # Check both integer and string keys for frame indices
-            all_frame_indices = set()
-            for key in all_frame_annotations.keys():
-                if isinstance(key, str) and key.isdigit():
-                    all_frame_indices.add(int(key))
-                elif isinstance(key, int):
-                    all_frame_indices.add(key)
-                else:
-                    all_frame_indices.add(key)
-            
-            logger.info(f"Frame indices found: {sorted(all_frame_indices)}")
-            
-            for frame_idx in sorted(all_frame_indices):
-                # Try both integer and string key
-                frame_ann = all_frame_annotations.get(frame_idx) or all_frame_annotations.get(str(frame_idx), {})
-                
-                logger.info(f"Processing frame {frame_idx}: {list(frame_ann.keys())}")
-                
-                # Skip frames with no annotations
-                keypoints_list = frame_ann.get("keypoints", [])
-                lines_list = frame_ann.get("lines", [])
-                rois_list = frame_ann.get("rois", [])
-                measurements = frame_ann.get("measurements", {})
-                distances_list = measurements.get("distances", []) if isinstance(measurements, dict) else []
-                angles_list = measurements.get("angles", []) if isinstance(measurements, dict) else []
-                
-                has_keypoints = len(keypoints_list) > 0
-                has_lines = len(lines_list) > 0
-                has_rois = len(rois_list) > 0
-                has_distances = len(distances_list) > 0
-                has_angles = len(angles_list) > 0
-                
-                logger.info(f"Frame {frame_idx}: keypoints={has_keypoints} ({len(keypoints_list)}), lines={has_lines} ({len(lines_list)}), rois={has_rois} ({len(rois_list)}), distances={has_distances} ({len(distances_list)}), angles={has_angles} ({len(angles_list)})")
-                
-                if not (has_keypoints or has_lines or has_rois or has_distances or has_angles):
-                    continue
-                
-                # Build frame record with full annotation data for reconstruction
-                frame_record = {
-                    "frame": frame_idx,
-                    "Keypoints": [serialize_keypoint(kp) for kp in keypoints_list],
-                    "Lines": [serialize_line(ln) for ln in lines_list],
-                    "ROIs": [serialize_roi(roi) for roi in rois_list],
-                    "Distances": [serialize_distance(dist) for dist in distances_list],
-                    "Angles": [serialize_angle(ang) for ang in angles_list]
-                }
-                
-                # Write the frame record
-                output_file.write(json.dumps(frame_record, ensure_ascii=False) + "\n")
-                lines_written += 1
-        
-        logger.info(f"Saved study {study_id} as JSONL (no keypoints file): {lines_written} frames with annotations written")
-    
-    # Also save metadata file with original video filename
+    study_metadata = {
+        "original_filename": original_filename,
+        "study_id": study_id,
+        "video_id": video_id,
+        "video_filename": original_filename,
+        "tracks_txt_filename": tracks_txt_filename,
+        "tracks_source_format": "mot_txt",
+    }
     metadata_path = study_dir / f"{study_id}_metadata.json"
     with metadata_path.open("w", encoding="utf-8") as f:
         json.dump(study_metadata, f, indent=2)
-    
+
     logger.info(f"Study {study_id} saved successfully")
     
     return JSONResponse({"status": "saved", "study_id": study_id})
 
 
 def save_study(study_id: str, data: Dict[str, Any]) -> None:
-    """Save study data to disk. This function is no longer used - annotations are saved as JSONL."""
-    # This function is kept for backward compatibility but annotations are now saved as JSONL
+    """Unused placeholder; studies are persisted via MOT-based save flow in save_annotations."""
     pass
 
 
@@ -1559,16 +1110,6 @@ def load_study(study_root: Path, study_id: str) -> Optional[Dict[str, Any]]:
         except Exception as e:
             logger.error(f"Error loading study metadata {study_id}: {e}")
     
-    # Try old JSON format for backward compatibility
-    annotations_path = study_dir / f"{study_id}_annotations.json"
-    if annotations_path.exists():
-        try:
-            with annotations_path.open("r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception as e:
-            logger.error(f"Error loading study {study_id}: {e}")
-            return None
-    
     return None
 
 
@@ -1581,19 +1122,6 @@ def _find_study_video(study_dir: Path, original_filename: str) -> Optional[Path]
         for f in study_dir.iterdir():
             if f.suffix.lower() == ext:
                 return f
-    return None
-
-
-def _find_keypoints_file(study_dir: Path) -> Optional[Path]:
-    candidate = study_dir / "keypoints_tracks.jsonl"
-    if candidate.exists():
-        return candidate
-    candidate_pt = study_dir / "keypoints_tracks.pt"
-    if candidate_pt.exists():
-        return candidate_pt
-    for f in study_dir.iterdir():
-        if f.suffix.lower() in {".jsonl", ".pt"} and "keypoints" in f.name.lower():
-            return f
     return None
 
 
@@ -1626,16 +1154,20 @@ def _study_data_for_propagation(
     except Exception:
         return None
 
-    keypoints_tracks = {}
-    if video_id:
-        temp_keypoints = temp_root / f"keypoints_{video_id}.jsonl"
-        if temp_keypoints.exists():
-            keypoints_tracks = load_keypoints_tracks(temp_keypoints)
-
-    if not keypoints_tracks:
-        keypoints_path = _find_keypoints_file(study_dir)
-        if keypoints_path:
-            keypoints_tracks = load_keypoints_tracks(keypoints_path)
+    keypoints_tracks: Dict[Any, Any] = {}
+    tracks_file = _study_saved_tracks_path(study_dir, metadata)
+    if tracks_file and tracks_file.exists():
+        try:
+            keypoints_tracks = load_mot_tracks_from_path(tracks_file)
+        except Exception:
+            keypoints_tracks = {}
+    if not keypoints_tracks and video_id:
+        tp = _temp_tracks_path(temp_root, video_id)
+        if tp.exists():
+            try:
+                keypoints_tracks = load_mot_tracks_from_path(tp)
+            except Exception:
+                keypoints_tracks = {}
 
     return {
         "total_frames": video_info["total_frames"],
@@ -1658,289 +1190,39 @@ def _find_track_for_frame(
     return None
 
 
-def parse_coords(coords_str: str) -> List[Dict[str, float]]:
-    """Parse coordinate string like 'x1,y1;x2,y2;...' into list of {x, y} dicts."""
-    points = []
-    if not coords_str:
-        return points
-    for pair in coords_str.split(";"):
-        parts = pair.split(",")
-        if len(parts) >= 2:
-            try:
-                points.append({"x": float(parts[0]), "y": float(parts[1])})
-            except ValueError:
-                continue
-    return points
-
-
 def load_study_annotations_to_temp(user_key: str, study_root: Path, temp_root: Path, study_id: str) -> bool:
-    """
-    Load annotations from saved JSONL file and write to temp JSON format.
-    Converts from saved format (Keypoints, coords string) to temp format (keypoints, x/y fields).
-    Returns True if successful, False otherwise.
-    """
+    """Copy saved extended MOT annotations into temp for this study session."""
     study_dir = study_root / study_id
-    annotations_path = study_dir / f"{study_id}_annotations.jsonl"
-    temp_annotations_file = temp_root / f"{study_id}_annotations.json"
-    
-    if not annotations_path.exists():
-        logger.warning(f"Annotations file not found: {annotations_path}")
+    ann_src = study_dir / f"{study_id}_annotations.txt"
+    if not ann_src.exists():
+        logger.warning(f"Annotations file not found: {ann_src}")
         return False
-    
-    logger.info(f"Loading annotations from {annotations_path} to temp")
-    
-    all_frame_annotations = {}
-    
+    ann_dst = _temp_annotations_txt(temp_root, study_id)
     try:
-        with annotations_path.open("r", encoding="utf-8") as f:
-            for line_num, line in enumerate(f, 1):
-                line = line.strip()
-                if not line:
-                    continue
-                
-                try:
-                    record = json.loads(line)
-                    frame_idx = record.get("frame", 0)
-                    
-                    # Skip track records (they have track_id), only process frame annotation records
-                    if "track_id" in record:
-                        # This is a track record with bounding box labels
-                        # We can extract name/action for bounding_boxes
-                        track_id = record.get("track_id")
-                        if frame_idx not in all_frame_annotations:
-                            all_frame_annotations[frame_idx] = {
-                                "keypoints": [],
-                                "lines": [],
-                                "rois": [],
-                                "measurements": {"distances": [], "angles": []},
-                                "bounding_boxes": {}
-                            }
-                        
-                        if track_id is not None:
-                            name = record.get("name")
-                            action = record.get("action")
-                            if name or action:
-                                all_frame_annotations[frame_idx]["bounding_boxes"][str(track_id)] = {
-                                    "track_id": track_id,
-                                    "det_id": record.get("det_id"),
-                                    "name": name,
-                                    "action": action
-                                }
-                        continue
-                    
-                    # This is a frame annotation record (manual annotations)
-                    if frame_idx not in all_frame_annotations:
-                        all_frame_annotations[frame_idx] = {
-                            "keypoints": [],
-                            "lines": [],
-                            "rois": [],
-                            "measurements": {"distances": [], "angles": []},
-                            "bounding_boxes": {}
-                        }
-                    
-                    frame_ann = all_frame_annotations[frame_idx]
-                    
-                    # Parse Keypoints (handles both old coords format and new x/y format)
-                    keypoints_data = record.get("Keypoints", [])
-                    for i, kp in enumerate(keypoints_data):
-                        # Try new format first (individual x, y fields)
-                        if "x" in kp and "y" in kp:
-                            frame_ann["keypoints"].append({
-                                "id": kp.get("id", f"kp-{i+1}"),
-                                "label": kp.get("name", kp.get("label", f"#{i+1}")),
-                                "x": kp.get("x", 0),
-                                "y": kp.get("y", 0),
-                                "color": kp.get("color", "#ff5252")
-                            })
-                        # Fall back to old coords string format
-                        elif "coords" in kp:
-                            coords = parse_coords(kp.get("coords", ""))
-                            if coords:
-                                frame_ann["keypoints"].append({
-                                    "id": kp.get("id", f"kp-{i+1}"),
-                                    "label": kp.get("name", f"#{i+1}"),
-                                    "x": coords[0]["x"],
-                                    "y": coords[0]["y"],
-                                    "color": kp.get("color", "#ff5252")
-                                })
-                    
-                    # Parse Lines (handles both old coords format and new start/end format)
-                    lines_data = record.get("Lines", [])
-                    for i, ln in enumerate(lines_data):
-                        # Try new format first (start/end objects)
-                        if "start" in ln and "end" in ln:
-                            frame_ann["lines"].append({
-                                "id": ln.get("id", f"line-{i+1}"),
-                                "label": ln.get("name", ln.get("label", f"#{i+1}")),
-                                "start": ln.get("start"),
-                                "end": ln.get("end"),
-                                "color": ln.get("color", "#4fc3f7")
-                            })
-                        # Fall back to old coords string format
-                        elif "coords" in ln:
-                            coords = parse_coords(ln.get("coords", ""))
-                            if len(coords) >= 2:
-                                frame_ann["lines"].append({
-                                    "id": ln.get("id", f"line-{i+1}"),
-                                    "label": ln.get("name", f"#{i+1}"),
-                                    "start": coords[0],
-                                    "end": coords[1],
-                                    "color": ln.get("color", "#4fc3f7")
-                                })
-                    
-                    # Parse ROIs (handles both old coords format and new points format)
-                    rois_data = record.get("ROIs", [])
-                    for i, roi in enumerate(rois_data):
-                        # Try new format first (points array)
-                        if "points" in roi and isinstance(roi.get("points"), list):
-                            frame_ann["rois"].append({
-                                "id": roi.get("id", f"roi-{i+1}"),
-                                "label": roi.get("name", roi.get("label", f"#{i+1}")),
-                                "points": roi.get("points"),
-                                "color": roi.get("color", "#4fc3f7")
-                            })
-                        # Fall back to old coords string format
-                        elif "coords" in roi:
-                            coords = parse_coords(roi.get("coords", ""))
-                            if len(coords) >= 3:
-                                frame_ann["rois"].append({
-                                    "id": roi.get("id", f"roi-{i+1}"),
-                                    "label": roi.get("name", f"#{i+1}"),
-                                    "points": coords,
-                                    "color": roi.get("color", "#4fc3f7")
-                                })
-                    
-                    # Parse Distances (handles both old coords format and new start/end format)
-                    distances_data = record.get("Distances", [])
-                    for i, dist in enumerate(distances_data):
-                        start_pt = None
-                        end_pt = None
-                        
-                        # Try new format first (start/end objects)
-                        if "start" in dist and "end" in dist:
-                            start_pt = dist.get("start")
-                            end_pt = dist.get("end")
-                        # Fall back to old coords string format
-                        elif "coords" in dist:
-                            coords = parse_coords(dist.get("coords", ""))
-                            if len(coords) >= 2:
-                                start_pt = coords[0]
-                                end_pt = coords[1]
-                        
-                        if start_pt and end_pt:
-                            value = dist.get("value")
-                            if value is None:
-                                # Calculate distance if not provided
-                                dx = end_pt["x"] - start_pt["x"]
-                                dy = end_pt["y"] - start_pt["y"]
-                                value = (dx**2 + dy**2) ** 0.5
-                            frame_ann["measurements"]["distances"].append({
-                                "id": dist.get("id", f"dist-{i+1}"),
-                                "label": dist.get("name", dist.get("label", f"#{i+1}")),
-                                "start": start_pt,
-                                "end": end_pt,
-                                "value": value,
-                                "color": dist.get("color", "#4fc3f7")
-                            })
-                    
-                    # Parse Angles (handles both old coords format and new point1/point2/point3 format)
-                    angles_data = record.get("Angles", [])
-                    for i, ang in enumerate(angles_data):
-                        p1 = None
-                        p2 = None
-                        p3 = None
-                        
-                        # Try new format first (point1/point2/point3 objects)
-                        if "point1" in ang and "point2" in ang and "point3" in ang:
-                            p1 = ang.get("point1")
-                            p2 = ang.get("point2")
-                            p3 = ang.get("point3")
-                        # Fall back to old coords string format
-                        elif "coords" in ang:
-                            coords = parse_coords(ang.get("coords", ""))
-                            if len(coords) >= 3:
-                                p1, p2, p3 = coords[0], coords[1], coords[2]
-                        
-                        if p1 and p2 and p3:
-                            # Calculate angle if not provided
-                            value = ang.get("value")
-                            if value is None:
-                                # Calculate angle from three points
-                                v1 = {"x": p1["x"] - p2["x"], "y": p1["y"] - p2["y"]}
-                                v2 = {"x": p3["x"] - p2["x"], "y": p3["y"] - p2["y"]}
-                                dot = v1["x"] * v2["x"] + v1["y"] * v2["y"]
-                                mag1 = (v1["x"]**2 + v1["y"]**2) ** 0.5
-                                mag2 = (v2["x"]**2 + v2["y"]**2) ** 0.5
-                                if mag1 > 0 and mag2 > 0:
-                                    cos_val = max(-1, min(1, dot / (mag1 * mag2)))
-                                    import math
-                                    value = math.acos(cos_val) * 180 / math.pi
-                                else:
-                                    value = 0
-                            frame_ann["measurements"]["angles"].append({
-                                "id": ang.get("id", f"angle-{i+1}"),
-                                "label": ang.get("name", ang.get("label", f"#{i+1}")),
-                                "point1": p1,
-                                "point2": p2,
-                                "point3": p3,
-                                "value": value,
-                                "isReflex": ang.get("isReflex", False),
-                                "color": ang.get("color", "#4fc3f7")
-                            })
-                    
-                except json.JSONDecodeError as e:
-                    logger.warning(f"Error parsing line {line_num} in {annotations_path}: {e}")
-                    continue
-        
-        # Write to temp file
-        temp_annotations = {study_id: {}}
-        for frame_idx, frame_ann in all_frame_annotations.items():
-            temp_annotations[study_id][str(frame_idx)] = frame_ann
-        
-        with _temp_lock(user_key, study_id):
-            with temp_annotations_file.open("w", encoding="utf-8") as f:
-                json.dump(temp_annotations, f, indent=2)
-        
-        # Also load into memory
-        frame_annotations = _user_frame_annotations(user_key)
-        if study_id not in frame_annotations:
-            frame_annotations[study_id] = {}
-        for frame_idx, frame_ann in all_frame_annotations.items():
-            frame_annotations[study_id][frame_idx] = frame_ann
-        
-        logger.info(f"Loaded {len(all_frame_annotations)} frames with annotations from {annotations_path}")
+        shutil.copy2(ann_src, ann_dst)
+        logger.info(f"Copied study annotations to temp: {ann_dst}")
         return True
-        
     except Exception as e:
-        logger.error(f"Error loading study annotations: {e}")
-        import traceback
-        logger.error(traceback.format_exc())
+        logger.error(f"Failed to copy annotations to temp: {e}")
         return False
 
 
 def list_studies(study_root: Path) -> List[str]:
-    """List all saved study IDs."""
+    """List saved study IDs that have extended MOT annotation files."""
     if not study_root.exists():
         return []
     studies = []
     for d in study_root.iterdir():
-        if d.is_dir():
-            # Check for JSONL (new format) or JSON (old format)
-            if (d / f"{d.name}_annotations.jsonl").exists() or (d / f"{d.name}_annotations.json").exists():
-                studies.append(d.name)
+        if d.is_dir() and (d / f"{d.name}_annotations.txt").exists():
+            studies.append(d.name)
     return studies
 
 
 @app.get("/study/{study_id}")
 async def get_study(request: Request, study_id: str) -> JSONResponse:
     """
-    Load a saved study for viewing.
-    This endpoint:
-    1. Loads study metadata
-    2. Finds and copies the video file to temp (with new video_id)
-    3. Copies keypoints file to temp if it exists
-    4. Parses JSONL annotations and writes to temp format
-    5. Returns all necessary data for the frontend
+    Load a saved study: copy video and MOT tracks into temp, copy extended MOT annotations
+    (or build empty extended copy from tracks), return frames and track geometry for the UI.
     """
     study_id = _safe_study_id(study_id)
     user_key, study_root, temp_root = _user_dirs(request)
@@ -1959,10 +1241,15 @@ async def get_study(request: Request, study_id: str) -> JSONResponse:
         original_filename = _safe_filename(metadata.get("original_filename", ""))
     except HTTPException:
         original_filename = ""
-    keypoints_source_format = metadata.get("keypoints_source_format")
-    if keypoints_source_format not in {"pt", "jsonl", "none"}:
-        keypoints_source_format = "none"
-    
+    tracks_txt_filename = metadata.get("tracks_txt_filename")
+    if tracks_txt_filename:
+        try:
+            tracks_txt_filename = _safe_filename(str(tracks_txt_filename))
+        except HTTPException:
+            tracks_txt_filename = ""
+    if not tracks_txt_filename:
+        tracks_txt_filename = "tracks.txt"
+
     # Find and copy video file to temp
     video_path = None
     video_id = None
@@ -2016,48 +1303,42 @@ async def get_study(request: Request, study_id: str) -> JSONResponse:
         logger.error(f"Failed to read video info: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to read video: {e}")
     
-    # Check for keypoints file in study folder and copy to temp
-    keypoints_tracks = {}
-    has_keypoints = False
-    
-    # Look for keypoints file in study folder (might be named differently)
-    keypoints_source = _find_keypoints_file(study_dir)
-    if keypoints_source and keypoints_source.exists():
-        keypoints_path = temp_root / f"keypoints_{video_id}.jsonl"
-        try:
-            if keypoints_source.suffix.lower() == ".pt":
-                keypoints_source_format = "pt"
-                temp_pt_path = temp_root / f"keypoints_{video_id}.pt"
-                shutil.copy2(keypoints_source, temp_pt_path)
-                keypoints_tracks = load_keypoints_tracks(temp_pt_path)
-                write_keypoints_tracks_jsonl(keypoints_tracks, keypoints_path)
-            else:
-                if keypoints_source_format == "none":
-                    keypoints_source_format = "jsonl"
-                shutil.copy2(keypoints_source, keypoints_path)
-                keypoints_tracks = load_keypoints_tracks(keypoints_path)
-            has_keypoints = len(keypoints_tracks) > 0
-            logger.info(f"Copied keypoints file to temp: {keypoints_path}")
-        except Exception as e:
-            logger.warning(f"Failed to copy keypoints file: {e}")
-    
-    # Load annotations from JSONL to temp
+    keypoints_tracks: Dict[Any, Any] = {}
+    study_tracks = study_dir / tracks_txt_filename
+    if not study_tracks.exists():
+        study_tracks = _study_saved_tracks_path(study_dir, metadata)
+    temp_tracks_path = _temp_tracks_path(temp_root, video_id)
+    try:
+        if study_tracks and study_tracks.exists():
+            shutil.copy2(study_tracks, temp_tracks_path)
+            keypoints_tracks = load_mot_tracks_from_path(temp_tracks_path)
+    except Exception as e:
+        logger.error(f"Failed to load MOT tracks: {e}")
+        raise HTTPException(status_code=400, detail=f"Invalid MOT tracks file in study: {e}")
+    has_keypoints = len(keypoints_tracks) > 0
+
     load_study_annotations_to_temp(user_key, study_root, temp_root, study_id)
-    
-    # Store in temp_studies for propagation support
+    ann_temp = _temp_annotations_txt(temp_root, study_id)
+    if not ann_temp.exists() and temp_tracks_path.exists():
+        ensure_extended_mot_copy(temp_tracks_path, ann_temp)
+
+    tracks_meta_name = study_tracks.name if study_tracks and study_tracks.exists() else tracks_txt_filename
+    meta_out = {
+        "video_filename": original_filename,
+        "tracks_txt_filename": tracks_meta_name,
+        "total_frames": total_frames,
+        "has_keypoints": has_keypoints,
+        "tracks_source_format": "mot_txt",
+    }
+
     _user_temp_studies(user_key)[video_id] = {
         "video_id": video_id,
         "frames": frames,
         "keypoints_tracks": keypoints_tracks,
         "total_frames": total_frames,
-        "metadata": {
-            "video_filename": original_filename,
-            "total_frames": total_frames,
-            "has_keypoints": has_keypoints,
-            "keypoints_source_format": keypoints_source_format,
-        },
+        "metadata": meta_out,
     }
-    
+
     response_data = {
         "study_id": study_id,
         "video_id": video_id,
@@ -2066,12 +1347,7 @@ async def get_study(request: Request, study_id: str) -> JSONResponse:
         "keypoints_tracks": keypoints_tracks,
         "total_frames": total_frames,
         "kind": "video",
-        "metadata": {
-            "video_filename": original_filename,
-            "total_frames": total_frames,
-            "has_keypoints": has_keypoints,
-            "keypoints_source_format": keypoints_source_format,
-        },
+        "metadata": meta_out,
     }
     
     return JSONResponse(response_data)
@@ -2084,23 +1360,20 @@ async def get_study_list(request: Request) -> JSONResponse:
 
 
 @app.get("/study/{study_id}/export")
-async def export_study_jsonl(request: Request, study_id: str) -> FileResponse:
-    """
-    Export study annotations - just returns the saved annotations.jsonl file.
-    The saved file is already in the correct format (JSONL with name/action added).
-    """
+async def export_study_annotations(request: Request, study_id: str) -> FileResponse:
+    """Export extended MOT annotations (.txt) for this study."""
     study_id = _safe_study_id(study_id)
     _, study_root, _ = _user_dirs(request)
     study_dir = study_root / study_id
-    annotations_path = study_dir / f"{study_id}_annotations.jsonl"
-    
+    annotations_path = study_dir / f"{study_id}_annotations.txt"
+
     if not annotations_path.exists():
         raise HTTPException(status_code=404, detail="Study annotations file not found")
-    
+
     return FileResponse(
         annotations_path,
-        media_type="application/x-ndjson",
-        filename=f"{study_id}_annotations.jsonl"
+        media_type="text/plain",
+        filename=f"{study_id}_annotations.txt",
     )
 
 
@@ -2167,26 +1440,32 @@ async def propagate_labels(
             if _frame_has_existing_label(frame_ann):
                 preexisting_labeled_frames.add(frame_idx_int)
 
-    temp_annotations_file = temp_root / f"{study_id}_annotations.json"
-    if temp_annotations_file.exists():
-        try:
-            with temp_annotations_file.open("r", encoding="utf-8") as f:
-                loaded_annotations = json.load(f)
-            temp_study_annotations = loaded_annotations.get(study_id, {})
-            for frame_key, frame_ann in temp_study_annotations.items():
-                try:
-                    frame_idx_int = int(frame_key)
-                except Exception:
-                    frame_idx_int = frame_key
-                if _frame_has_existing_label(frame_ann):
-                    preexisting_labeled_frames.add(frame_idx_int)
-        except Exception as e:
-            logger.warning(f"Failed to load temp annotations for propagation stop check: {e}")
+    ann_path = _temp_annotations_txt(temp_root, study_id)
+    lines_for_scan: List[str] = []
+    if ann_path.exists():
+        lines_for_scan = ann_path.read_text(encoding="utf-8").splitlines()
+    elif video_id:
+        tracks_path = _temp_tracks_path(temp_root, video_id)
+        if tracks_path.exists():
+            try:
+                ensure_extended_mot_copy(tracks_path, ann_path)
+                lines_for_scan = ann_path.read_text(encoding="utf-8").splitlines()
+            except ValueError as e:
+                raise HTTPException(status_code=400, detail=str(e)) from e
+
+    try:
+        for fi in range(total_frames):
+            pl = frame_payload_from_extended_lines(lines_for_scan, fi)
+            if _frame_has_existing_label(pl):
+                preexisting_labeled_frames.add(fi)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
     
+    tid_key = str(track_id)
     for frame_idx in range(frame_index, total_frames):
         # Check if this frame has the track_id
         frame_tracks = keypoints_tracks.get(frame_idx) or keypoints_tracks.get(str(frame_idx)) or []
-        has_track = any(track.get("track_id") == track_id for track in frame_tracks)
+        has_track = any(str(t.get("track_id")) == tid_key for t in frame_tracks)
         
         if has_track:
             if frame_idx > frame_index and frame_idx in preexisting_labeled_frames:
@@ -2201,7 +1480,8 @@ async def propagate_labels(
             if "bounding_boxes" not in frame_annotations[study_id][frame_idx]:
                 frame_annotations[study_id][frame_idx]["bounding_boxes"] = {}
             
-            bbox_data = frame_annotations[study_id][frame_idx]["bounding_boxes"].get(track_id, {})
+            bboxes = frame_annotations[study_id][frame_idx]["bounding_boxes"]
+            bbox_data = dict(bboxes.get(tid_key, {}))
             bbox_data.setdefault("track_id", track_id)
             if bbox_data.get("det_id") is None and matched_track:
                 bbox_data["det_id"] = matched_track.get("det_id")
@@ -2221,7 +1501,7 @@ async def propagate_labels(
                 # Only clear action if explicitly provided as empty on the current frame
                 bbox_data.pop("action", None)
             
-            frame_annotations[study_id][frame_idx]["bounding_boxes"][track_id] = bbox_data
+            bboxes[tid_key] = bbox_data
             frame_annotations[study_id][frame_idx]["frame"] = frame_idx
             if video_id:
                 frame_annotations[study_id][frame_idx]["video_id"] = video_id
@@ -2240,24 +1520,23 @@ async def propagate_labels(
                 annotations["video_id"] = video_id
             pending_updates[frame_idx] = annotations
 
-    if pending_updates:
-        temp_annotations_file = temp_root / f"{study_id}_annotations.json"
+    if pending_updates and video_id:
+        ann_path = _temp_annotations_txt(temp_root, study_id)
+        tracks_path = _temp_tracks_path(temp_root, video_id)
         try:
             with _temp_lock(user_key, study_id):
-                all_annotations = {}
-                if temp_annotations_file.exists():
-                    with temp_annotations_file.open("r", encoding="utf-8") as f:
-                        all_annotations = json.load(f)
-                
-                if study_id not in all_annotations:
-                    all_annotations[study_id] = {}
-                for frame_idx, annotations in pending_updates.items():
-                    all_annotations[study_id][str(frame_idx)] = annotations
-                
-                with temp_annotations_file.open("w", encoding="utf-8") as f:
-                    json.dump(all_annotations, f, indent=2)
+                ensure_extended_mot_copy(tracks_path, ann_path)
+                lines = ann_path.read_text(encoding="utf-8").splitlines()
+                for frame_idx in sorted(pending_updates.keys()):
+                    disk = frame_payload_from_extended_lines(lines, frame_idx)
+                    mem = frame_annotations[study_id].get(frame_idx) or {}
+                    merged = _merge_frame_payload_disk_and_memory(disk, mem)
+                    sync_payload_to_extended_mot_file(ann_path, frame_idx, merged)
+                    lines = ann_path.read_text(encoding="utf-8").splitlines()
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e)) from e
         except Exception as e:
-            logger.warning(f"Failed to save temp annotations file: {e}")
+            logger.warning(f"Failed to sync propagated labels to MOT file: {e}")
     
     return JSONResponse({
         "status": "propagated",

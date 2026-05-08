@@ -3,7 +3,7 @@ services:
     build: .
     container_name: video_labeler
     ports:
-      - "${VIDEO_LABELER_PORT:-8000}:8000"
+      - "${VIDEO_LABELER_PORT:-8002}:8000"
     volumes:
       # Bind mount data directory to persist studies and uploads
       - ./data:/app/data

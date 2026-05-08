@@ -82,9 +82,12 @@
     <main>
       <section>
         <h2>Quick Start</h2>
+        <div class="callout" style="margin-bottom: 12px;">
+          <strong>Strict tracks format:</strong> MOT lines must have <strong>10 comma-separated fields</strong> (CoMotion export). After a <strong>server restart</strong>, reload the page and upload or load your study again (temp files are cleared).
+        </div>
         <ol>
           <li>Log in with your email and password.</li>
-          <li>Select a video file (and optional keypoints_tracks.jsonl).</li>
+          <li>Select a video file and a MOT tracks file (<code>.txt</code>, e.g. CoMotion export).</li>
           <li>Click <strong>Upload</strong> and wait for the video to load.</li>
           <li>Navigate frames and add labels/annotations.</li>
           <li>Enter a Study ID and click <strong>Save study</strong>.</li>
@@ -95,7 +98,7 @@
         <h2>Upload and Navigate</h2>
         <ul>
           <li><strong>Select Video</strong> uploads a video file.</li>
-          <li><strong>Select Keypoints Tracks (optional)</strong> loads tracked keypoints and bounding boxes.</li>
+          <li><strong>Select MOT tracks (.txt)</strong> loads bounding boxes / track IDs per frame (CoMotion-style MOT).</li>
           <li>Use the arrows above the canvas to move frames.</li>
           <li>Click the frame number to jump to a specific frame.</li>
           <li>Keyboard: <span class="key">Left</span> and <span class="key">Right</span> arrows move frames.</li>
@@ -143,8 +146,8 @@
         <ul>
           <li><strong>Save new study:</strong> enter a new Study ID and click <strong>Save study</strong>.</li>
           <li><strong>Overwrite with new upload:</strong> if you upload a new video and save with an existing ID, the old study is replaced.</li>
-          <li><strong>Update existing study:</strong> if you load a study and save with the same ID, only the JSONL annotations are updated.</li>
-          <li><strong>Save As:</strong> load a study, enter a new ID, then save. The video and keypoints file are copied to the new study.</li>
+          <li><strong>Update existing study:</strong> if you load a study and save with the same ID, the study folder is updated (video, tracks copy, extended MOT annotations).</li>
+          <li><strong>Save As:</strong> load a study, enter a new ID, then save. The video, MOT tracks, and annotations file are copied to the new study.</li>
         </ul>
       </section>
 
@@ -152,7 +155,7 @@
         <h2>Where Your Data Lives</h2>
         <ul>
           <li>Your studies are private to your login.</li>
-          <li>The study folder contains the video, the keypoints tracks file, and the JSONL annotations.</li>
+          <li>The study folder contains the video, the MOT tracks <code>.txt</code>, and <code>&lt;study_id&gt;_annotations.txt</code> (extended MOT plus labels and manual geometry).</li>
           <li>No per-frame PNGs are generated for video.</li>
         </ul>
       </section>
